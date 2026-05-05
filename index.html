@@ -53,12 +53,25 @@
     padding-left: var(--sal);
     padding-right: var(--sar);
   }
+  /* ── BACKGROUND IMAGE ── */
   body::before {
     content: '';
     position: fixed;
     inset: 0;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
-    background-size: 200px 200px;
+    background-image: url('bg.jpg');
+    background-size: cover;
+    background-position: center top;
+    filter: blur(6px) brightness(0.35);
+    transform: scale(1.05); /* prevent blur edge white */
+    pointer-events: none;
+    z-index: 0;
+  }
+  /* site content overlay at 90% opacity */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: rgba(13,13,13,0.1);
     pointer-events: none;
     z-index: 0;
   }
@@ -113,11 +126,11 @@
     position: sticky; top: 0; z-index: 100;
     display: flex; align-items: center; justify-content: space-between;
     padding: 1.25rem 2rem; border-bottom: 1px solid var(--border);
-    background: rgba(13,13,13,0.88); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+    background: rgba(13,13,13,0.78); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
   }
   .logo-wrap { display:flex; align-items:center; gap:0.75rem; }
   .logo-img { width:32px; height:32px; border-radius:8px; object-fit:cover; }
-  .logo-text { font-family:'Syne',sans-serif; font-weight:800; font-size:1.3rem; letter-spacing:-0.04em; }
+  .logo-text { font-family:'Syne',sans-serif; font-weight:800; font-size:1.95rem; letter-spacing:-0.04em; }
   .logo-text span { color:var(--accent); }
   .header-right { display:flex; align-items:center; gap:0.75rem; }
   .sync-indicator { width:8px; height:8px; border-radius:50%; background:var(--muted); transition:background 0.3s; flex-shrink:0; }
@@ -136,7 +149,7 @@
   /* ── HERO ── */
   .hero { position:relative; z-index:5; padding:4rem 2rem 2.5rem; }
   .hero-eyebrow { font-size:0.72rem; letter-spacing:0.2em; text-transform:uppercase; color:var(--muted); margin-bottom:1rem; }
-  .hero h1 { font-family:'Syne',sans-serif; font-weight:800; font-size:clamp(2.8rem,10vw,5.5rem); line-height:0.95; letter-spacing:-0.04em; margin-bottom:1.25rem; }
+  .hero h1 { font-family:'Syne',sans-serif; font-weight:800; font-size:clamp(1.9rem,6.5vw,3.7rem); line-height:0.95; letter-spacing:-0.04em; margin-bottom:1.25rem; }
   .hero h1 em { font-style:normal; color:var(--accent); }
   .hero-sub { color:var(--muted); font-size:0.95rem; max-width:420px; line-height:1.7; }
 
@@ -159,7 +172,7 @@
   .cards-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(260px,1fr)); gap:0.9rem; }
 
   /* ── CARD ── */
-  .card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:1.25rem; position:relative; transition:border-color 0.25s, transform 0.25s, background 0.25s; overflow:hidden; animation:fadeSlide 0.4s ease both; -webkit-tap-highlight-color:transparent; }
+  .card { background:rgba(21,21,21,0.82); border:1px solid var(--border); border-radius:12px; padding:1.25rem; position:relative; transition:border-color 0.25s, transform 0.25s, background 0.25s; overflow:hidden; animation:fadeSlide 0.4s ease both; -webkit-tap-highlight-color:transparent; }
   @keyframes fadeSlide { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
   .card::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:var(--cat-color,var(--accent)); opacity:0; transition:opacity 0.25s; }
   @media(hover:hover) {
@@ -262,14 +275,14 @@
   </div>
   <div class="header-right">
     <div class="sync-indicator" id="syncDot" title="Sync status"></div>
-    <button class="edit-toggle" id="editToggle" onclick="handleEditToggle()">✏ Edit</button>
+    <button class="edit-toggle" id="editToggle" onclick="handleEditToggle()">☰ Edit</button>
   </div>
 </header>
 
 <section class="hero">
-  <p class="hero-eyebrow">Krit Komolsirikul · Kyoto, Japan</p>
+  <p class="hero-eyebrow">Kkboi</p>
   <h1>Built by<br/><em>Krit.</em></h1>
-  <p class="hero-sub">A curated hall of projects — games, language tools, and small experiments. Pick a room and explore.</p>
+  <p class="hero-sub">Quick project gallery — games, language tools, and small experiments. Pick a room and explore.</p>
 </section>
 
 <div class="stats">
@@ -548,7 +561,7 @@ function handleEditToggle() {
   editMode = !editMode;
   document.body.classList.toggle('edit-mode', editMode);
   const btn = document.getElementById('editToggle');
-  btn.textContent = editMode ? '✕ Exit Edit' : '✏ Edit';
+  btn.textContent = editMode ? '✕ Exit Edit' : '☰ Edit';
   btn.classList.toggle('active', editMode);
   if (!editMode && hasChanges) openSaveModal();
 }

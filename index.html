@@ -9,22 +9,16 @@
 <meta name="apple-mobile-web-app-title" content="K-Hall" />
 <meta name="theme-color" content="#0d0d0d" />
 <meta name="description" content="Krit's personal project hub — games, language tools, and small experiments." />
-
-<!-- Open Graph -->
 <meta property="og:title" content="K-Hall — Krit's Project Hub" />
 <meta property="og:description" content="Games, Thai language tools, and funny pop-ups. All built by Krit." />
 <meta property="og:type" content="website" />
 <meta property="og:image" content="icons/icon-512x512.png" />
 
 <title>K-Hall — Krit's Project Hub</title>
-
-<!-- PWA -->
 <link rel="manifest" href="manifest.json" />
 <link rel="icon" href="icons/favicon.ico" sizes="any" />
 <link rel="icon" href="icons/icon-192x192.png" type="image/png" />
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
-
-<!-- Fonts -->
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,700;1,9..40,300&display=swap" rel="stylesheet" />
@@ -39,17 +33,13 @@
     --text: #f0ece4;
     --muted: #6b6b6b;
     --danger: #e05252;
-    --safe: #0d0d0d;
     --sat: env(safe-area-inset-top, 0px);
     --sab: env(safe-area-inset-bottom, 0px);
     --sal: env(safe-area-inset-left, 0px);
     --sar: env(safe-area-inset-right, 0px);
   }
-
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
   html { scroll-behavior: smooth; }
-
   body {
     background: var(--bg);
     color: var(--text);
@@ -63,7 +53,6 @@
     padding-left: var(--sal);
     padding-right: var(--sar);
   }
-
   body::before {
     content: '';
     position: fixed;
@@ -74,441 +63,184 @@
     z-index: 0;
   }
 
+  /* ── LOADING ── */
+  #loadScreen {
+    position: fixed; inset: 0; background: var(--bg); z-index: 9999;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.5rem;
+    transition: opacity 0.4s ease;
+  }
+  #loadScreen.fade { opacity: 0; pointer-events: none; }
+  .load-logo { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 2.5rem; letter-spacing: -0.04em; }
+  .load-logo span { color: var(--accent); }
+  .load-spinner { width: 28px; height: 28px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .load-msg { font-size: 0.78rem; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; }
+
+  /* ── SYNC BAR ── */
+  #syncBar {
+    position: fixed; top: calc(0px + var(--sat)); left: 0; right: 0; z-index: 800;
+    display: flex; align-items: center; justify-content: center; gap: 0.6rem;
+    padding: 0.5rem 1rem; font-size: 0.75rem; letter-spacing: 0.06em; text-transform: uppercase;
+    transform: translateY(-100%); transition: transform 0.3s ease, background 0.3s;
+  }
+  #syncBar.show { transform: translateY(0); }
+  #syncBar.syncing { background: #1a1500; color: var(--accent);  border-bottom: 1px solid #f5a62330; }
+  #syncBar.ok      { background: #0a1a12; color: #42c9a0;        border-bottom: 1px solid #42c9a030; }
+  #syncBar.err     { background: #1a0a0a; color: var(--danger);  border-bottom: 1px solid #e0525230; }
+  .sync-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+  #syncBar.syncing .sync-dot { animation: pulse 0.8s ease infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
   /* ── INSTALL BANNER ── */
   #installBanner {
-    display: none;
-    position: fixed;
-    bottom: calc(1.5rem + var(--sab));
-    left: 50%;
-    transform: translateX(-50%);
-    background: var(--surface);
-    border: 1px solid var(--accent);
-    border-radius: 16px;
-    padding: 1rem 1.25rem;
-    width: min(90vw, 380px);
-    z-index: 900;
-    gap: 0.75rem;
-    align-items: center;
-    box-shadow: 0 8px 40px rgba(245,166,35,0.15);
-    animation: slideUp 0.4s cubic-bezier(0.34,1.56,0.64,1) both;
+    display: none; position: fixed; bottom: calc(1.5rem + var(--sab)); left: 50%; transform: translateX(-50%);
+    background: var(--surface); border: 1px solid var(--accent); border-radius: 16px;
+    padding: 1rem 1.25rem; width: min(90vw, 380px); z-index: 700; gap: 0.75rem; align-items: center;
+    box-shadow: 0 8px 40px rgba(245,166,35,0.15); animation: slideUp 0.4s cubic-bezier(0.34,1.56,0.64,1) both;
   }
   #installBanner.show { display: flex; }
-  @keyframes slideUp {
-    from { opacity: 0; transform: translateX(-50%) translateY(40px); }
-    to   { opacity: 1; transform: translateX(-50%) translateY(0); }
-  }
-  #installBanner img { width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0; }
-  .install-text { flex: 1; }
-  .install-text strong { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.9rem; display: block; }
-  .install-text span { font-size: 0.75rem; color: var(--muted); }
-  .install-btns { display: flex; gap: 0.5rem; flex-shrink: 0; }
-  .btn-install {
-    padding: 0.45rem 0.9rem;
-    background: var(--accent);
-    color: #000;
-    border: none;
-    border-radius: 8px;
-    font-family: 'Syne', sans-serif;
-    font-weight: 700;
-    font-size: 0.78rem;
-    cursor: pointer;
-    white-space: nowrap;
-  }
-  .btn-dismiss {
-    padding: 0.45rem 0.6rem;
-    background: none;
-    color: var(--muted);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    font-size: 0.78rem;
-    cursor: pointer;
-  }
+  @keyframes slideUp { from{opacity:0;transform:translateX(-50%) translateY(40px)} to{opacity:1;transform:translateX(-50%) translateY(0)} }
+  #installBanner img { width:40px; height:40px; border-radius:10px; flex-shrink:0; }
+  .install-text { flex:1; }
+  .install-text strong { font-family:'Syne',sans-serif; font-weight:700; font-size:0.9rem; display:block; }
+  .install-text span { font-size:0.75rem; color:var(--muted); }
+  .install-btns { display:flex; gap:0.5rem; flex-shrink:0; }
+  .btn-install { padding:0.45rem 0.9rem; background:var(--accent); color:#000; border:none; border-radius:8px; font-family:'Syne',sans-serif; font-weight:700; font-size:0.78rem; cursor:pointer; white-space:nowrap; }
+  .btn-dismiss { padding:0.45rem 0.6rem; background:none; color:var(--muted); border:1px solid var(--border); border-radius:8px; font-size:0.78rem; cursor:pointer; }
 
   /* ── HEADER ── */
   header {
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 1.25rem 2rem;
-    border-bottom: 1px solid var(--border);
-    background: rgba(13,13,13,0.85);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+    position: sticky; top: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1.25rem 2rem; border-bottom: 1px solid var(--border);
+    background: rgba(13,13,13,0.88); backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
   }
-
-  .logo-wrap { display: flex; align-items: center; gap: 0.75rem; }
-  .logo-img { width: 32px; height: 32px; border-radius: 8px; object-fit: cover; }
-  .logo-text {
-    font-family: 'Syne', sans-serif;
-    font-weight: 800;
-    font-size: 1.3rem;
-    letter-spacing: -0.04em;
-  }
-  .logo-text span { color: var(--accent); }
-
+  .logo-wrap { display:flex; align-items:center; gap:0.75rem; }
+  .logo-img { width:32px; height:32px; border-radius:8px; object-fit:cover; }
+  .logo-text { font-family:'Syne',sans-serif; font-weight:800; font-size:1.3rem; letter-spacing:-0.04em; }
+  .logo-text span { color:var(--accent); }
+  .header-right { display:flex; align-items:center; gap:0.75rem; }
+  .sync-indicator { width:8px; height:8px; border-radius:50%; background:var(--muted); transition:background 0.3s; flex-shrink:0; }
+  .sync-indicator.live   { background:#42c9a0; box-shadow:0 0 6px #42c9a060; }
+  .sync-indicator.saving { background:var(--accent); animation:pulse 0.8s ease infinite; }
+  .sync-indicator.error  { background:var(--danger); }
   .edit-toggle {
-    background: none;
-    border: 1px solid var(--border);
-    color: var(--muted);
-    padding: 0.4rem 1rem;
-    border-radius: 999px;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 0.78rem;
-    cursor: pointer;
-    transition: all 0.2s;
-    letter-spacing: 0.04em;
-    -webkit-tap-highlight-color: transparent;
+    background:none; border:1px solid var(--border); color:var(--muted);
+    padding:0.4rem 1rem; border-radius:999px; font-family:'DM Sans',sans-serif;
+    font-size:0.78rem; cursor:pointer; transition:all 0.2s; letter-spacing:0.04em;
+    -webkit-tap-highlight-color:transparent;
   }
-  .edit-toggle:hover, .edit-toggle:focus { border-color: var(--accent); color: var(--accent); outline: none; }
-  .edit-toggle.active { background: var(--accent); color: #000; border-color: var(--accent); font-weight: 700; }
+  .edit-toggle:hover { border-color:var(--accent); color:var(--accent); }
+  .edit-toggle.active { background:var(--accent); color:#000; border-color:var(--accent); font-weight:700; }
 
   /* ── HERO ── */
-  .hero {
-    position: relative;
-    z-index: 5;
-    padding: 4rem 2rem 2.5rem;
-  }
-  .hero-eyebrow {
-    font-size: 0.72rem;
-    letter-spacing: 0.2em;
-    text-transform: uppercase;
-    color: var(--muted);
-    margin-bottom: 1rem;
-  }
-  .hero h1 {
-    font-family: 'Syne', sans-serif;
-    font-weight: 800;
-    font-size: clamp(2.8rem, 10vw, 5.5rem);
-    line-height: 0.95;
-    letter-spacing: -0.04em;
-    margin-bottom: 1.25rem;
-  }
-  .hero h1 em { font-style: normal; color: var(--accent); }
-  .hero-sub { color: var(--muted); font-size: 0.95rem; max-width: 420px; line-height: 1.7; }
+  .hero { position:relative; z-index:5; padding:4rem 2rem 2.5rem; }
+  .hero-eyebrow { font-size:0.72rem; letter-spacing:0.2em; text-transform:uppercase; color:var(--muted); margin-bottom:1rem; }
+  .hero h1 { font-family:'Syne',sans-serif; font-weight:800; font-size:clamp(2.8rem,10vw,5.5rem); line-height:0.95; letter-spacing:-0.04em; margin-bottom:1.25rem; }
+  .hero h1 em { font-style:normal; color:var(--accent); }
+  .hero-sub { color:var(--muted); font-size:0.95rem; max-width:420px; line-height:1.7; }
 
   /* ── STATS ── */
-  .stats {
-    position: relative;
-    z-index: 5;
-    display: flex;
-    gap: 2rem;
-    padding: 1.25rem 2rem;
-    border-top: 1px solid var(--border);
-    border-bottom: 1px solid var(--border);
-    overflow-x: auto;
-    scrollbar-width: none;
-  }
-  .stats::-webkit-scrollbar { display: none; }
-  .stat { flex-shrink: 0; }
-  .stat-num {
-    font-family: 'Syne', sans-serif;
-    font-weight: 800;
-    font-size: 1.8rem;
-    letter-spacing: -0.04em;
-    display: block;
-  }
-  .stat-label { font-size: 0.7rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+  .stats { position:relative; z-index:5; display:flex; gap:2rem; padding:1.25rem 2rem; border-top:1px solid var(--border); border-bottom:1px solid var(--border); overflow-x:auto; scrollbar-width:none; }
+  .stats::-webkit-scrollbar { display:none; }
+  .stat { flex-shrink:0; }
+  .stat-num { font-family:'Syne',sans-serif; font-weight:800; font-size:1.8rem; letter-spacing:-0.04em; display:block; }
+  .stat-label { font-size:0.7rem; letter-spacing:0.12em; text-transform:uppercase; color:var(--muted); }
+  .pwa-badge { display:inline-flex; align-items:center; gap:0.35rem; font-size:0.65rem; letter-spacing:0.1em; text-transform:uppercase; color:#42c9a0; border:1px solid #42c9a020; background:#42c9a010; padding:0.2rem 0.6rem; border-radius:999px; }
+  .pwa-badge::before { content:'●'; font-size:0.5rem; }
 
   /* ── MAIN ── */
-  .main { position: relative; z-index: 5; padding: 2.5rem 2rem; }
-  .category-section { margin-bottom: 3.5rem; }
-  .category-header {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    margin-bottom: 1.25rem;
-    flex-wrap: wrap;
-  }
-  .category-tag {
-    font-size: 0.68rem;
-    font-weight: 700;
-    letter-spacing: 0.15em;
-    text-transform: uppercase;
-    padding: 0.25rem 0.75rem;
-    border-radius: 999px;
-    border: 1px solid currentColor;
-    white-space: nowrap;
-  }
-  .add-btn {
-    margin-left: auto;
-    background: none;
-    border: 1px dashed var(--border);
-    color: var(--muted);
-    padding: 0.3rem 0.75rem;
-    border-radius: 6px;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 0.75rem;
-    cursor: pointer;
-    transition: all 0.2s;
-    display: none;
-    -webkit-tap-highlight-color: transparent;
-  }
-  .add-btn:hover { border-color: var(--accent); color: var(--accent); }
-
-  .cards-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-    gap: 0.9rem;
-  }
+  .main { position:relative; z-index:5; padding:2.5rem 2rem; }
+  .category-section { margin-bottom:3.5rem; }
+  .category-header { display:flex; align-items:center; gap:0.75rem; margin-bottom:1.25rem; flex-wrap:wrap; }
+  .category-tag { font-size:0.68rem; font-weight:700; letter-spacing:0.15em; text-transform:uppercase; padding:0.25rem 0.75rem; border-radius:999px; border:1px solid currentColor; white-space:nowrap; }
+  .add-btn { margin-left:auto; background:none; border:1px dashed var(--border); color:var(--muted); padding:0.3rem 0.75rem; border-radius:6px; font-family:'DM Sans',sans-serif; font-size:0.75rem; cursor:pointer; transition:all 0.2s; display:none; -webkit-tap-highlight-color:transparent; }
+  .add-btn:hover { border-color:var(--accent); color:var(--accent); }
+  .cards-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(260px,1fr)); gap:0.9rem; }
 
   /* ── CARD ── */
-  .card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 1.25rem;
-    position: relative;
-    transition: border-color 0.25s, transform 0.25s, background 0.25s;
-    overflow: hidden;
-    animation: fadeSlide 0.4s ease both;
-    -webkit-tap-highlight-color: transparent;
+  .card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:1.25rem; position:relative; transition:border-color 0.25s, transform 0.25s, background 0.25s; overflow:hidden; animation:fadeSlide 0.4s ease both; -webkit-tap-highlight-color:transparent; }
+  @keyframes fadeSlide { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+  .card::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:var(--cat-color,var(--accent)); opacity:0; transition:opacity 0.25s; }
+  @media(hover:hover) {
+    .card:hover { border-color:#3a3a3a; transform:translateY(-3px); background:#191919; }
+    .card:hover::before { opacity:1; }
   }
-  @keyframes fadeSlide {
-    from { opacity: 0; transform: translateY(10px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-  .card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 2px;
-    background: var(--cat-color, var(--accent));
-    opacity: 0;
-    transition: opacity 0.25s;
-  }
-  @media (hover: hover) {
-    .card:hover { border-color: #3a3a3a; transform: translateY(-3px); background: #191919; }
-    .card:hover::before { opacity: 1; }
-  }
-
-  .card-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 0.75rem; }
-  .card-icon { width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1rem; flex-shrink: 0; background: var(--surface2); }
-  .card-actions-edit { display: none; gap: 0.35rem; }
-  .card-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 0.95rem; letter-spacing: -0.02em; margin-bottom: 0.35rem; line-height: 1.2; }
-  .card-desc { font-size: 0.8rem; color: var(--muted); line-height: 1.6; margin-bottom: 1rem; }
-  .card-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    font-size: 0.75rem;
-    font-weight: 700;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    color: var(--text);
-    text-decoration: none;
-    padding: 0.45rem 0.8rem;
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    transition: color 0.2s, border-color 0.2s;
-  }
-  .card-link:hover { color: var(--cat-color, var(--accent)); border-color: currentColor; }
-  .card-link svg { width: 11px; height: 11px; }
-
-  .icon-btn {
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    color: var(--muted);
-    width: 30px; height: 30px;
-    border-radius: 6px;
-    display: flex; align-items: center; justify-content: center;
-    cursor: pointer;
-    font-size: 0.82rem;
-    transition: all 0.2s;
-    flex-shrink: 0;
-    -webkit-tap-highlight-color: transparent;
-  }
-  .icon-btn:hover { color: var(--text); border-color: #444; }
-  .icon-btn.delete:hover { color: var(--danger); border-color: var(--danger); }
+  .card-top { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:0.75rem; }
+  .card-icon { width:34px; height:34px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:1rem; flex-shrink:0; background:var(--surface2); }
+  .card-actions-edit { display:none; gap:0.35rem; }
+  .card-title { font-family:'Syne',sans-serif; font-weight:700; font-size:0.95rem; letter-spacing:-0.02em; margin-bottom:0.35rem; line-height:1.2; }
+  .card-desc { font-size:0.8rem; color:var(--muted); line-height:1.6; margin-bottom:1rem; }
+  .card-link { display:inline-flex; align-items:center; gap:0.4rem; font-size:0.75rem; font-weight:700; letter-spacing:0.05em; text-transform:uppercase; color:var(--text); text-decoration:none; padding:0.45rem 0.8rem; border:1px solid var(--border); border-radius:6px; transition:color 0.2s, border-color 0.2s; }
+  .card-link:hover { color:var(--cat-color,var(--accent)); border-color:currentColor; }
+  .card-link svg { width:11px; height:11px; }
+  .icon-btn { background:var(--surface2); border:1px solid var(--border); color:var(--muted); width:30px; height:30px; border-radius:6px; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:0.82rem; transition:all 0.2s; flex-shrink:0; -webkit-tap-highlight-color:transparent; }
+  .icon-btn:hover { color:var(--text); border-color:#444; }
+  .icon-btn.delete:hover { color:var(--danger); border-color:var(--danger); }
 
   /* ── EDIT MODE ── */
-  body.edit-mode .add-btn { display: flex; }
-  body.edit-mode .card-actions-edit { display: flex; }
-  body.edit-mode .card-link { pointer-events: none; opacity: 0.4; }
-  body.edit-mode .card { border-style: dashed; }
+  body.edit-mode .add-btn { display:flex; }
+  body.edit-mode .card-actions-edit { display:flex; }
+  body.edit-mode .card-link { pointer-events:none; opacity:0.4; }
+  body.edit-mode .card { border-style:dashed; }
 
   /* ── MODAL ── */
-  .modal-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.82);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
-    z-index: 1000;
-    align-items: flex-end;
-    justify-content: center;
-    padding-bottom: var(--sab);
-  }
-  .modal-overlay.open { display: flex; }
-
-  .modal {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 20px 20px 0 0;
-    padding: 1.5rem 1.5rem calc(1.5rem + var(--sab));
-    width: 100%;
-    max-width: 480px;
-    animation: modalUp 0.3s cubic-bezier(0.34,1.2,0.64,1);
-  }
-  @keyframes modalUp {
-    from { opacity: 0; transform: translateY(60px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-
-  .modal-handle { width: 36px; height: 4px; background: var(--border); border-radius: 999px; margin: 0 auto 1.25rem; }
-  .modal h3 { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 1.1rem; margin-bottom: 1.25rem; letter-spacing: -0.02em; }
-
-  .form-group { margin-bottom: 0.9rem; }
-  .form-group label { display: block; font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.35rem; }
-  .form-group input, .form-group textarea, .form-group select {
-    width: 100%;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    color: var(--text);
-    padding: 0.65rem 0.9rem;
-    border-radius: 10px;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 1rem;
-    outline: none;
-    transition: border-color 0.2s;
-    appearance: none;
-    -webkit-appearance: none;
-  }
-  .form-group input:focus, .form-group textarea:focus { border-color: var(--accent); }
-  .form-group textarea { resize: vertical; min-height: 80px; }
-
-  .modal-actions { display: flex; gap: 0.75rem; margin-top: 1.25rem; }
-  .btn-primary {
-    flex: 1;
-    padding: 0.75rem 1rem;
-    background: var(--accent);
-    color: #000;
-    border: none;
-    border-radius: 10px;
-    font-family: 'Syne', sans-serif;
-    font-weight: 700;
-    font-size: 0.88rem;
-    cursor: pointer;
-    transition: opacity 0.2s;
-    -webkit-tap-highlight-color: transparent;
-  }
-  .btn-primary:hover { opacity: 0.85; }
-  .btn-ghost {
-    padding: 0.75rem 1rem;
-    background: none;
-    color: var(--muted);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 0.88rem;
-    cursor: pointer;
-    transition: all 0.2s;
-    -webkit-tap-highlight-color: transparent;
-  }
-  .btn-ghost:hover { color: var(--text); border-color: #444; }
-
-  .error-msg { color: var(--danger); font-size: 0.78rem; margin-top: 0.35rem; display: none; }
-  .error-msg.show { display: block; }
+  .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.82); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); z-index:1000; align-items:flex-end; justify-content:center; padding-bottom:var(--sab); }
+  .modal-overlay.open { display:flex; }
+  .modal { background:var(--surface); border:1px solid var(--border); border-radius:20px 20px 0 0; padding:1.5rem 1.5rem calc(1.5rem + var(--sab)); width:100%; max-width:480px; animation:modalUp 0.3s cubic-bezier(0.34,1.2,0.64,1); }
+  @keyframes modalUp { from{opacity:0;transform:translateY(60px)} to{opacity:1;transform:translateY(0)} }
+  .modal-handle { width:36px; height:4px; background:var(--border); border-radius:999px; margin:0 auto 1.25rem; }
+  .modal h3 { font-family:'Syne',sans-serif; font-weight:700; font-size:1.1rem; margin-bottom:0.5rem; letter-spacing:-0.02em; }
+  .modal-sub { font-size:0.82rem; color:var(--muted); margin-bottom:1.25rem; line-height:1.6; }
+  .form-group { margin-bottom:0.9rem; }
+  .form-group label { display:block; font-size:0.7rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); margin-bottom:0.35rem; }
+  .form-group input, .form-group textarea { width:100%; background:var(--bg); border:1px solid var(--border); color:var(--text); padding:0.65rem 0.9rem; border-radius:10px; font-family:'DM Sans',sans-serif; font-size:1rem; outline:none; transition:border-color 0.2s; -webkit-appearance:none; }
+  .form-group input:focus, .form-group textarea:focus { border-color:var(--accent); }
+  .form-group textarea { resize:vertical; min-height:80px; }
+  .modal-actions { display:flex; gap:0.75rem; margin-top:1.25rem; }
+  .btn-primary { flex:1; padding:0.75rem 1rem; background:var(--accent); color:#000; border:none; border-radius:10px; font-family:'Syne',sans-serif; font-weight:700; font-size:0.88rem; cursor:pointer; transition:opacity 0.2s; -webkit-tap-highlight-color:transparent; }
+  .btn-primary:hover { opacity:0.85; }
+  .btn-primary:disabled { opacity:0.5; cursor:not-allowed; }
+  .btn-ghost { padding:0.75rem 1rem; background:none; color:var(--muted); border:1px solid var(--border); border-radius:10px; font-family:'DM Sans',sans-serif; font-size:0.88rem; cursor:pointer; transition:all 0.2s; -webkit-tap-highlight-color:transparent; }
+  .btn-ghost:hover { color:var(--text); border-color:#444; }
+  .error-msg { color:var(--danger); font-size:0.78rem; margin-top:0.35rem; display:none; }
+  .error-msg.show { display:block; }
 
   /* ── SAVE BAR ── */
-  .save-bar {
-    position: fixed;
-    bottom: calc(1.5rem + var(--sab));
-    left: 50%;
-    transform: translateX(-50%) translateY(120px);
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 999px;
-    padding: 0.65rem 0.9rem 0.65rem 1.2rem;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    z-index: 500;
-    transition: transform 0.35s cubic-bezier(0.34,1.4,0.64,1);
-    white-space: nowrap;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.6);
-  }
-  .save-bar.visible { transform: translateX(-50%) translateY(0); }
-  .save-bar span { font-size: 0.8rem; color: var(--muted); }
-  .save-bar .btn-save {
-    padding: 0.4rem 1rem;
-    background: var(--accent);
-    color: #000;
-    border: none;
-    border-radius: 999px;
-    font-family: 'Syne', sans-serif;
-    font-weight: 700;
-    font-size: 0.75rem;
-    cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
-  }
+  .save-bar { position:fixed; bottom:calc(1.5rem + var(--sab)); left:50%; transform:translateX(-50%) translateY(120px); background:var(--surface); border:1px solid var(--border); border-radius:999px; padding:0.65rem 0.9rem 0.65rem 1.2rem; display:flex; align-items:center; gap:0.75rem; z-index:500; transition:transform 0.35s cubic-bezier(0.34,1.4,0.64,1); white-space:nowrap; box-shadow:0 8px 32px rgba(0,0,0,0.6); }
+  .save-bar.visible { transform:translateX(-50%) translateY(0); }
+  .save-bar span { font-size:0.8rem; color:var(--muted); }
+  .save-bar .btn-save { padding:0.4rem 1rem; background:var(--accent); color:#000; border:none; border-radius:999px; font-family:'Syne',sans-serif; font-weight:700; font-size:0.75rem; cursor:pointer; -webkit-tap-highlight-color:transparent; }
 
   /* ── TOAST ── */
-  .toast {
-    position: fixed;
-    top: calc(1rem + var(--sat));
-    right: 1rem;
-    background: var(--surface2);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 0.75rem 1rem;
-    font-size: 0.82rem;
-    z-index: 2000;
-    transform: translateX(120%);
-    transition: transform 0.3s ease;
-    max-width: 260px;
-  }
-  .toast.show { transform: translateX(0); }
-  .toast.success { border-color: #42c9a0; color: #42c9a0; }
-  .toast.error   { border-color: var(--danger); color: var(--danger); }
+  .toast { position:fixed; top:calc(1rem + var(--sat)); right:1rem; background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:0.75rem 1rem; font-size:0.82rem; z-index:2000; transform:translateX(120%); transition:transform 0.3s ease; max-width:260px; }
+  .toast.show { transform:translateX(0); }
+  .toast.success { border-color:#42c9a0; color:#42c9a0; }
+  .toast.error   { border-color:var(--danger); color:var(--danger); }
 
   /* ── FOOTER ── */
-  footer {
-    position: relative;
-    z-index: 5;
-    border-top: 1px solid var(--border);
-    padding: 1.5rem 2rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    color: var(--muted);
-    font-size: 0.75rem;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-  }
+  footer { position:relative; z-index:5; border-top:1px solid var(--border); padding:1.5rem 2rem; display:flex; justify-content:space-between; align-items:center; color:var(--muted); font-size:0.75rem; flex-wrap:wrap; gap:0.5rem; }
 
-  /* ── PWA STATUS indicator ── */
-  .pwa-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.35rem;
-    font-size: 0.65rem;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: #42c9a0;
-    border: 1px solid #42c9a020;
-    background: #42c9a010;
-    padding: 0.2rem 0.6rem;
-    border-radius: 999px;
-  }
-  .pwa-badge::before { content: '●'; font-size: 0.5rem; }
-
-  @media (max-width: 480px) {
-    header { padding: 1rem 1.25rem; }
-    .hero  { padding: 2.5rem 1.25rem 1.5rem; }
-    .stats { padding: 1rem 1.25rem; }
-    .main  { padding: 1.5rem 1.25rem; }
-    footer { padding: 1.25rem; flex-direction: column; text-align: center; }
-    .hero h1 { font-size: 2.6rem; }
+  @media(max-width:480px) {
+    header { padding:1rem 1.25rem; }
+    .hero  { padding:2.5rem 1.25rem 1.5rem; }
+    .stats { padding:1rem 1.25rem; }
+    .main  { padding:1.5rem 1.25rem; }
+    footer { padding:1.25rem; flex-direction:column; text-align:center; }
+    .hero h1 { font-size:2.6rem; }
   }
 </style>
 </head>
 <body>
 
-<!-- INSTALL BANNER -->
+<div id="loadScreen">
+  <div class="load-logo">K<span>-</span>Hall</div>
+  <div class="load-spinner"></div>
+  <div class="load-msg" id="loadMsg">Fetching projects...</div>
+</div>
+
+<div id="syncBar"><div class="sync-dot"></div><span id="syncMsg"></span></div>
+
 <div id="installBanner">
   <img src="icons/icon-192x192.png" alt="K-Hall" />
   <div class="install-text">
@@ -521,47 +253,42 @@
   </div>
 </div>
 
-<!-- TOAST -->
 <div class="toast" id="toast"></div>
 
-<!-- HEADER -->
 <header>
   <div class="logo-wrap">
     <img src="icons/icon-192x192.png" class="logo-img" alt="K" />
     <span class="logo-text">K<span>-</span>Hall</span>
   </div>
-  <button class="edit-toggle" id="editToggle" onclick="handleEditToggle()">✏ Edit</button>
+  <div class="header-right">
+    <div class="sync-indicator" id="syncDot" title="Sync status"></div>
+    <button class="edit-toggle" id="editToggle" onclick="handleEditToggle()">✏ Edit</button>
+  </div>
 </header>
 
-<!-- HERO -->
 <section class="hero">
-  <p class="hero-eyebrow">Kkboi</p>
+  <p class="hero-eyebrow">Krit Komolsirikul · Kyoto, Japan</p>
   <h1>Built by<br/><em>Krit.</em></h1>
-  <p class="hero-sub">A quick project gallery — games, language tools, and small experiments. Pick a room and explore.</p>
+  <p class="hero-sub">A curated hall of projects — games, language tools, and small experiments. Pick a room and explore.</p>
 </section>
 
-<!-- STATS -->
 <div class="stats">
   <div class="stat">
-    <span class="stat-num" id="totalCount">0</span>
+    <span class="stat-num" id="totalCount">—</span>
     <span class="stat-label">Projects</span>
   </div>
   <div class="stat">
-    <span class="stat-num" id="catCount">0</span>
+    <span class="stat-num" id="catCount">—</span>
     <span class="stat-label">Categories</span>
   </div>
   <div class="stat" id="pwaStatWrap" style="display:none">
-    <span class="stat-num">
-      <span class="pwa-badge" id="pwaBadge">Installed</span>
-    </span>
+    <span class="stat-num"><span class="pwa-badge">Installed</span></span>
     <span class="stat-label">App Status</span>
   </div>
 </div>
 
-<!-- MAIN -->
 <main class="main" id="mainContent"></main>
 
-<!-- SAVE BAR -->
 <div class="save-bar" id="saveBar">
   <span>Unsaved changes</span>
   <button class="btn-save" onclick="openSaveModal()">Save Changes</button>
@@ -571,21 +298,22 @@
 <div class="modal-overlay" id="pwModal">
   <div class="modal">
     <div class="modal-handle"></div>
-    <h3>Save Changes</h3>
+    <h3>Save to Cloud ☁️</h3>
+    <p class="modal-sub">Changes sync to all devices instantly.</p>
     <div class="form-group">
       <label>Password</label>
       <input type="password" id="pwInput" placeholder="Enter password"
              onkeydown="if(event.key==='Enter')confirmSave()" autocomplete="current-password" />
-      <div class="error-msg" id="pwError">Incorrect password. Try again.</div>
+      <div class="error-msg" id="pwError">Incorrect password.</div>
     </div>
     <div class="modal-actions">
       <button class="btn-ghost" onclick="closeModal('pwModal')">Cancel</button>
-      <button class="btn-primary" onclick="confirmSave()">Confirm Save</button>
+      <button class="btn-primary" id="saveBtn" onclick="confirmSave()">Save & Sync</button>
     </div>
   </div>
 </div>
 
-<!-- ADD CARD MODAL -->
+<!-- ADD MODAL -->
 <div class="modal-overlay" id="addModal">
   <div class="modal">
     <div class="modal-handle"></div>
@@ -600,7 +328,7 @@
     </div>
     <div class="form-group">
       <label>GitHub / URL</label>
-      <input type="url" id="addUrl" placeholder="https://github.com/krit/..." autocomplete="off" />
+      <input type="url" id="addUrl" placeholder="https://github.com/Kkboi2000/..." autocomplete="off" />
     </div>
     <div class="form-group">
       <label>Icon (emoji)</label>
@@ -613,7 +341,7 @@
   </div>
 </div>
 
-<!-- EDIT CARD MODAL -->
+<!-- EDIT MODAL -->
 <div class="modal-overlay" id="editCardModal">
   <div class="modal">
     <div class="modal-handle"></div>
@@ -641,68 +369,118 @@
   </div>
 </div>
 
-<!-- FOOTER -->
 <footer>
   <span>K-Hall · Krit's Project Hub</span>
   <span id="footerCount"></span>
 </footer>
 
 <script>
-// ─── DEFAULT DATA ───────────────────────────────
-const DEFAULT_DATA = {
+// ─── CONFIG — no secrets here ────────────────────
+const WORKER_URL = 'https://falling-sun-c1c2.krit-komol.workers.dev';
+const PASSWORD   = 'krit';
+const CACHE_KEY  = 'khall_gist_cache';
+
+// ─── FALLBACK DATA ───────────────────────────────
+const FALLBACK = {
   categories: [
     {
-      id: "games",
-      name: "Game / Party Game",
-      emoji: "🎮",
-      color: "#f5a623",
-      projects: [
-        { id:"p1",  name:"Jigsang",       desc:"Real-time multiplayer jigsaw puzzle game built with Firebase sync.",        url:"https://github.com/krit/jigsang",      icon:"🧩" },
-        { id:"p2",  name:"Kodeword",      desc:"Word-guessing party game. Codenames-style, mobile-first.",                  url:"https://github.com/krit/kodeword",     icon:"🔤" },
-        { id:"p3",  name:"Word Wolf JP",  desc:"Japanese Word Wolf — werewolf-style party game for groups.",                url:"https://github.com/krit/wordwolf-jp",  icon:"🐺" },
-        { id:"p4",  name:"Spyfall TH",    desc:"Thai-localized Spyfall with custom location sets.",                          url:"https://github.com/krit/spyfall-th",   icon:"🕵️" },
-        { id:"p5",  name:"Quizzer",        desc:"Live quiz battle game with real-time leaderboard.",                         url:"https://github.com/krit/quizzer",      icon:"❓" }
+      id:"games", name:"Game / Party Game", emoji:"🎮", color:"#f5a623",
+      projects:[
+        {id:"p1",  name:"Jigsang",       desc:"Real-time multiplayer jigsaw puzzle game built with Firebase sync.",   url:"https://github.com/Kkboi2000/jigsang",      icon:"🧩"},
+        {id:"p2",  name:"Kodeword",      desc:"Word-guessing party game. Codenames-style, mobile-first.",             url:"https://github.com/Kkboi2000/kodeword",     icon:"🔤"},
+        {id:"p3",  name:"Word Wolf JP",  desc:"Japanese Word Wolf — werewolf-style party game for groups.",           url:"https://github.com/Kkboi2000/wordwolf-jp",  icon:"🐺"},
+        {id:"p4",  name:"Spyfall TH",    desc:"Thai-localized Spyfall with custom location sets.",                    url:"https://github.com/Kkboi2000/spyfall-th",   icon:"🕵️"},
+        {id:"p5",  name:"Quizzer",       desc:"Live quiz battle game with real-time leaderboard.",                    url:"https://github.com/Kkboi2000/quizzer",      icon:"❓"}
       ]
     },
     {
-      id: "thai",
-      name: "Thai Language / Teaching",
-      emoji: "🇹🇭",
-      color: "#42c9a0",
-      projects: [
-        { id:"p6",  name:"Thai Alphabet Drill",  desc:"Interactive consonant and vowel trainer for beginners.",             url:"https://github.com/krit/thai-alpha-drill", icon:"ก" },
-        { id:"p7",  name:"Thai Tone Guide",      desc:"Visual tone rule explainer with audio examples.",                    url:"https://github.com/krit/thai-tones",       icon:"🎵" },
-        { id:"p8",  name:"Thai Flash Cards",     desc:"Spaced-repetition vocabulary deck for JLPT-style learning.",         url:"https://github.com/krit/thai-flashcards",  icon:"📇" },
-        { id:"p9",  name:"Thai Reading Pad",     desc:"Annotated reading practice texts with syllable breakdowns.",         url:"https://github.com/krit/thai-reading",     icon:"📖" },
-        { id:"p10", name:"Thai Phrase Builder",  desc:"Sentence construction tool for conversational Thai.",                url:"https://github.com/krit/thai-phrases",     icon:"💬" },
-        { id:"p11", name:"Thai Number Trainer",  desc:"Learn Thai numerals and counting systems interactively.",            url:"https://github.com/krit/thai-numbers",     icon:"🔢" }
+      id:"thai", name:"Thai Language / Teaching", emoji:"🇹🇭", color:"#42c9a0",
+      projects:[
+        {id:"p6",  name:"Thai Alphabet Drill", desc:"Interactive consonant and vowel trainer for beginners.",          url:"https://github.com/Kkboi2000/thai-alpha-drill", icon:"ก"},
+        {id:"p7",  name:"Thai Tone Guide",     desc:"Visual tone rule explainer with audio examples.",                 url:"https://github.com/Kkboi2000/thai-tones",       icon:"🎵"},
+        {id:"p8",  name:"Thai Flash Cards",    desc:"Spaced-repetition vocabulary deck for JLPT-style learning.",      url:"https://github.com/Kkboi2000/thai-flashcards",  icon:"📇"},
+        {id:"p9",  name:"Thai Reading Pad",    desc:"Annotated reading practice texts with syllable breakdowns.",      url:"https://github.com/Kkboi2000/thai-reading",     icon:"📖"},
+        {id:"p10", name:"Thai Phrase Builder", desc:"Sentence construction tool for conversational Thai.",             url:"https://github.com/Kkboi2000/thai-phrases",     icon:"💬"},
+        {id:"p11", name:"Thai Number Trainer", desc:"Learn Thai numerals and counting systems interactively.",         url:"https://github.com/Kkboi2000/thai-numbers",     icon:"🔢"}
       ]
     },
     {
-      id: "popups",
-      name: "Easy Funny Pop-ups",
-      emoji: "🎉",
-      color: "#a78bfa",
-      projects: [
-        { id:"p12", name:"Birthday Surprise",  desc:"Interactive animated birthday pop-up page — made for a partner.",     url:"https://github.com/krit/birthday-surprise", icon:"🎂" },
-        { id:"p13", name:"Congrats Blast",     desc:"Confetti-explosion congratulations micro-site.",                      url:"https://github.com/krit/congrats-blast",    icon:"🎊" },
-        { id:"p14", name:"Mood Check",         desc:"Silly daily mood tracker pop-up widget.",                             url:"https://github.com/krit/mood-check",        icon:"😄" }
+      id:"popups", name:"Easy Funny Pop-ups", emoji:"🎉", color:"#a78bfa",
+      projects:[
+        {id:"p12", name:"Birthday Surprise", desc:"Interactive animated birthday pop-up page.",                        url:"https://github.com/Kkboi2000/birthday-surprise", icon:"🎂"},
+        {id:"p13", name:"Congrats Blast",    desc:"Confetti-explosion congratulations micro-site.",                    url:"https://github.com/Kkboi2000/congrats-blast",    icon:"🎊"},
+        {id:"p14", name:"Mood Check",        desc:"Silly daily mood tracker pop-up widget.",                           url:"https://github.com/Kkboi2000/mood-check",        icon:"😄"}
       ]
     }
   ]
 };
 
 // ─── STATE ───────────────────────────────────────
-const STORAGE_KEY = 'khall_data_v1';
-const PASSWORD = 'krit';
-let state = null, editMode = false, hasChanges = false;
+let state = null;
+let editMode = false, hasChanges = false;
 let currentCatId = null, editingCardId = null, editingCatId = null;
 
-function loadState() {
-  try { const r = localStorage.getItem(STORAGE_KEY); if (r) return JSON.parse(r); } catch(e) {}
-  return JSON.parse(JSON.stringify(DEFAULT_DATA));
+// ─── WORKER API ──────────────────────────────────
+async function fetchFromWorker() {
+  const res = await fetch(WORKER_URL);
+  if (!res.ok) throw new Error(`Worker GET failed: ${res.status}`);
+  const data = await res.json();
+  if (!data.categories || data.categories.length === 0) return FALLBACK;
+  return data;
 }
-function saveState() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+
+async function saveToWorker(data) {
+  const res = await fetch(WORKER_URL, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  });
+  if (!res.ok) throw new Error(`Worker PATCH failed: ${res.status}`);
+  return res.json();
+}
+
+// ─── CACHE ───────────────────────────────────────
+function cacheState(data) { try { localStorage.setItem(CACHE_KEY, JSON.stringify(data)); } catch(e) {} }
+function getCached()      { try { const r = localStorage.getItem(CACHE_KEY); return r ? JSON.parse(r) : null; } catch(e) { return null; } }
+
+// ─── SYNC UI ─────────────────────────────────────
+function setSyncStatus(s) { document.getElementById('syncDot').className = 'sync-indicator ' + s; }
+function showSyncBar(type, msg, autohide = true) {
+  const bar = document.getElementById('syncBar');
+  document.getElementById('syncMsg').textContent = msg;
+  bar.className = `show ${type}`;
+  if (autohide) setTimeout(() => bar.classList.remove('show'), 3000);
+}
+
+// ─── INIT ─────────────────────────────────────────
+async function init() {
+  const loadMsg = document.getElementById('loadMsg');
+
+  // Instant render from cache
+  const cached = getCached();
+  if (cached) { state = cached; render(); setSyncStatus('saving'); }
+
+  // Fresh fetch from Worker → Gist
+  try {
+    loadMsg.textContent = 'Syncing from cloud...';
+    const fresh = await fetchFromWorker();
+    state = fresh;
+    cacheState(state);
+    render();
+    setSyncStatus('live');
+    showSyncBar('ok', 'Synced ✓');
+  } catch(err) {
+    console.warn('[K-Hall] Fetch failed:', err);
+    if (!state) { state = JSON.parse(JSON.stringify(FALLBACK)); render(); }
+    setSyncStatus('error');
+    showSyncBar('err', 'Offline — showing cached data');
+  }
+
+  const ls = document.getElementById('loadScreen');
+  ls.classList.add('fade');
+  setTimeout(() => ls.style.display = 'none', 450);
+  checkInstalled();
+}
 
 // ─── RENDER ──────────────────────────────────────
 function render() {
@@ -723,7 +501,6 @@ function render() {
       <div class="cards-grid" id="grid-${cat.id}"></div>
     `;
     main.appendChild(section);
-
     const grid = section.querySelector(`#grid-${cat.id}`);
     cat.projects.forEach(p => grid.appendChild(makeCard(p, cat)));
   });
@@ -731,28 +508,32 @@ function render() {
   document.getElementById('totalCount').textContent = total;
   document.getElementById('catCount').textContent = state.categories.length;
   document.getElementById('footerCount').textContent = `${total} projects · ${state.categories.length} categories`;
+
+  if (location.hash) {
+    setTimeout(() => {
+      const el = document.getElementById(location.hash.slice(1));
+      if (el) el.scrollIntoView({ behavior: 'smooth' });
+    }, 300);
+  }
 }
 
 function makeCard(p, cat) {
   const card = document.createElement('div');
   card.className = 'card';
   card.style.setProperty('--cat-color', cat.color);
-  card.dataset.id = p.id;
   card.innerHTML = `
     <div class="card-top">
       <div class="card-icon">${p.icon || '📁'}</div>
       <div class="card-actions-edit">
-        <button class="icon-btn" title="Edit" onclick="openEditCard('${p.id}','${cat.id}')">✏</button>
-        <button class="icon-btn delete" title="Delete" onclick="deleteCard('${p.id}','${cat.id}')">✕</button>
+        <button class="icon-btn" onclick="openEditCard('${p.id}','${cat.id}')">✏</button>
+        <button class="icon-btn delete" onclick="deleteCard('${p.id}','${cat.id}')">✕</button>
       </div>
     </div>
     <div class="card-title">${esc(p.name)}</div>
     <div class="card-desc">${esc(p.desc)}</div>
     <a class="card-link" href="${esc(p.url)}" target="_blank" rel="noopener noreferrer">
       View Repo
-      <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8">
-        <path d="M2 10L10 2M4 2h6v6"/>
-      </svg>
+      <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 10L10 2M4 2h6v6"/></svg>
     </a>
   `;
   return card;
@@ -789,17 +570,11 @@ function confirmAdd() {
   if (!name || !url) { showToast('Name and URL are required.', 'error'); return; }
   const cat = state.categories.find(c => c.id === currentCatId);
   if (!cat) return;
-  cat.projects.push({
-    id: 'p' + Date.now(),
-    name,
-    desc: document.getElementById('addDesc').value.trim(),
-    url,
-    icon: document.getElementById('addIcon').value.trim() || '📁'
-  });
+  cat.projects.push({ id:'p'+Date.now(), name, desc:document.getElementById('addDesc').value.trim(), url, icon:document.getElementById('addIcon').value.trim()||'📁' });
   closeModal('addModal');
   render();
   markChanged();
-  showToast('Project added! 🎉', 'success');
+  showToast('Project added!', 'success');
 }
 
 // ─── EDIT CARD ───────────────────────────────────
@@ -807,8 +582,7 @@ function openEditCard(cardId, catId) {
   const cat  = state.categories.find(c => c.id === catId);
   const proj = cat?.projects.find(p => p.id === cardId);
   if (!proj) return;
-  editingCardId = cardId;
-  editingCatId  = catId;
+  editingCardId = cardId; editingCatId = catId;
   document.getElementById('editName').value = proj.name;
   document.getElementById('editDesc').value = proj.desc;
   document.getElementById('editUrl').value  = proj.url;
@@ -831,23 +605,24 @@ function confirmEdit() {
 
 // ─── DELETE ──────────────────────────────────────
 function deleteCard(cardId, catId) {
-  if (!confirm('Remove this project from K-Hall?')) return;
+  if (!confirm('Remove this project?')) return;
   const cat = state.categories.find(c => c.id === catId);
   if (!cat) return;
   cat.projects = cat.projects.filter(p => p.id !== cardId);
   render();
   markChanged();
-  showToast('Project removed.', 'success');
+  showToast('Removed.', 'success');
 }
 
-// ─── SAVE / PW ───────────────────────────────────
+// ─── SAVE / SYNC ─────────────────────────────────
 function openSaveModal() {
   document.getElementById('pwInput').value = '';
   document.getElementById('pwError').classList.remove('show');
   openModal('pwModal');
   setTimeout(() => document.getElementById('pwInput').focus(), 350);
 }
-function confirmSave() {
+
+async function confirmSave() {
   const pw = document.getElementById('pwInput').value;
   if (pw !== PASSWORD) {
     document.getElementById('pwError').classList.add('show');
@@ -855,92 +630,77 @@ function confirmSave() {
     document.getElementById('pwInput').focus();
     return;
   }
-  saveState();
-  hasChanges = false;
-  document.getElementById('saveBar').classList.remove('visible');
-  closeModal('pwModal');
-  showToast('Saved! ✓', 'success');
+  const btn = document.getElementById('saveBtn');
+  btn.textContent = 'Saving...';
+  btn.disabled = true;
+  setSyncStatus('saving');
+  showSyncBar('syncing', 'Saving to cloud...', false);
+
+  try {
+    await saveToWorker(state);
+    cacheState(state);
+    hasChanges = false;
+    document.getElementById('saveBar').classList.remove('visible');
+    closeModal('pwModal');
+    setSyncStatus('live');
+    showSyncBar('ok', 'Saved & synced to all devices ✓');
+    showToast('Saved! ☁️✓', 'success');
+  } catch(err) {
+    console.error('[K-Hall] Save failed:', err);
+    setSyncStatus('error');
+    showSyncBar('err', 'Save failed — check connection');
+    showToast('Save failed. Try again.', 'error');
+  } finally {
+    btn.textContent = 'Save & Sync';
+    btn.disabled = false;
+  }
 }
 
 // ─── MODALS ──────────────────────────────────────
 function openModal(id)  { document.getElementById(id).classList.add('open'); }
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 document.querySelectorAll('.modal-overlay').forEach(o => {
-  o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); });
+  o.addEventListener('click', e => { if(e.target===o) o.classList.remove('open'); });
 });
 
 // ─── TOAST ───────────────────────────────────────
 let toastTimer;
-function showToast(msg, type = 'success') {
+function showToast(msg, type='success') {
   const t = document.getElementById('toast');
-  t.textContent = msg;
-  t.className = `toast ${type} show`;
+  t.textContent = msg; t.className = `toast ${type} show`;
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => t.classList.remove('show'), 2800);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 3000);
 }
 
-// ─── PWA: SERVICE WORKER ─────────────────────────
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('./sw.js')
-      .then(reg => console.log('[K-Hall] SW registered, scope:', reg.scope))
-      .catch(err => console.warn('[K-Hall] SW failed:', err));
-  });
-}
-
-// ─── PWA: INSTALL PROMPT ─────────────────────────
+// ─── PWA ─────────────────────────────────────────
 let deferredPrompt = null;
-
 window.addEventListener('beforeinstallprompt', e => {
-  e.preventDefault();
-  deferredPrompt = e;
-  // Show banner after short delay
+  e.preventDefault(); deferredPrompt = e;
   setTimeout(() => {
-    const banner = document.getElementById('installBanner');
-    if (!window.matchMedia('(display-mode: standalone)').matches) {
-      banner.classList.add('show');
-    }
-  }, 2000);
+    if (!window.matchMedia('(display-mode: standalone)').matches)
+      document.getElementById('installBanner').classList.add('show');
+  }, 3000);
 });
-
 function triggerInstall() {
   if (!deferredPrompt) return;
   deferredPrompt.prompt();
-  deferredPrompt.userChoice.then(choice => {
-    if (choice.outcome === 'accepted') showToast('K-Hall installed! 🎉', 'success');
+  deferredPrompt.userChoice.then(c => {
+    if (c.outcome === 'accepted') showToast('K-Hall installed! 🎉', 'success');
     deferredPrompt = null;
     document.getElementById('installBanner').classList.remove('show');
   });
 }
-
-function dismissInstall() {
-  document.getElementById('installBanner').classList.remove('show');
-  deferredPrompt = null;
-}
-
-// ─── PWA: DETECT STANDALONE (installed) ──────────
+function dismissInstall() { document.getElementById('installBanner').classList.remove('show'); deferredPrompt = null; }
 function checkInstalled() {
-  const isInstalled = window.matchMedia('(display-mode: standalone)').matches
-                   || window.navigator.standalone === true;
-  if (isInstalled) {
-    document.getElementById('pwaStatWrap').style.display = '';
-    document.getElementById('installBanner').classList.remove('show');
-  }
+  const on = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+  if (on) { document.getElementById('pwaStatWrap').style.display = ''; document.getElementById('installBanner').classList.remove('show'); }
 }
-checkInstalled();
-window.matchMedia('(display-mode: standalone)').addEventListener('change', checkInstalled);
 
-// ─── INIT ─────────────────────────────────────────
-state = loadState();
-render();
-
-// Handle deep-link anchors (from manifest shortcuts)
-if (location.hash) {
-  setTimeout(() => {
-    const el = document.getElementById(location.hash.slice(1));
-    if (el) el.scrollIntoView({ behavior: 'smooth' });
-  }, 400);
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
 }
+
+init();
 </script>
 </body>
 </html>

@@ -25,13 +25,14 @@
 
 <style>
   :root {
-    --bg: #0d0d0d;
-    --surface: #151515;
-    --surface2: #1e1e1e;
-    --border: #2a2a2a;
-    --accent: #f5a623;
-    --text: #f0ece4;
-    --muted: #6b6b6b;
+    --bg: #0d0f12;
+    --surface: #131720;
+    --surface2: #1a2030;
+    --border: #252d3d;
+    --accent: #7b9cbe;
+    --accent-bright: #a8c4e0;
+    --text: #dce6f0;
+    --muted: #5a6a7e;
     --danger: #e05252;
     --sat: env(safe-area-inset-top, 0px);
     --sab: env(safe-area-inset-bottom, 0px);
@@ -97,8 +98,8 @@
     transform: translateY(-100%); transition: transform 0.3s ease, background 0.3s;
   }
   #syncBar.show { transform: translateY(0); }
-  #syncBar.syncing { background: #1a1500; color: var(--accent);  border-bottom: 1px solid #f5a62330; }
-  #syncBar.ok      { background: #0a1a12; color: #42c9a0;        border-bottom: 1px solid #42c9a030; }
+  #syncBar.syncing { background: #0d1520; color: var(--accent);  border-bottom: 1px solid #7b9cbe30; }
+  #syncBar.ok      { background: #0d1825; color: #8ab4c9;        border-bottom: 1px solid #8ab4c930; }
   #syncBar.err     { background: #1a0a0a; color: var(--danger);  border-bottom: 1px solid #e0525230; }
   .sync-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
   #syncBar.syncing .sync-dot { animation: pulse 0.8s ease infinite; }
@@ -134,7 +135,7 @@
   .logo-text span { color:var(--accent); }
   .header-right { display:flex; align-items:center; gap:0.75rem; }
   .sync-indicator { width:8px; height:8px; border-radius:50%; background:var(--muted); transition:background 0.3s; flex-shrink:0; }
-  .sync-indicator.live   { background:#42c9a0; box-shadow:0 0 6px #42c9a060; }
+  .sync-indicator.live   { background:#8ab4c9; box-shadow:0 0 6px #8ab4c960; }
   .sync-indicator.saving { background:var(--accent); animation:pulse 0.8s ease infinite; }
   .sync-indicator.error  { background:var(--danger); }
   .edit-toggle {
@@ -159,7 +160,7 @@
   .stat { flex-shrink:0; }
   .stat-num { font-family:'Syne',sans-serif; font-weight:800; font-size:1.8rem; letter-spacing:-0.04em; display:block; }
   .stat-label { font-size:0.7rem; letter-spacing:0.12em; text-transform:uppercase; color:var(--muted); }
-  .pwa-badge { display:inline-flex; align-items:center; gap:0.35rem; font-size:0.65rem; letter-spacing:0.1em; text-transform:uppercase; color:#42c9a0; border:1px solid #42c9a020; background:#42c9a010; padding:0.2rem 0.6rem; border-radius:999px; }
+  .pwa-badge { display:inline-flex; align-items:center; gap:0.35rem; font-size:0.65rem; letter-spacing:0.1em; text-transform:uppercase; color:#8ab4c9; border:1px solid #8ab4c920; background:#8ab4c910; padding:0.2rem 0.6rem; border-radius:999px; }
   .pwa-badge::before { content:'●'; font-size:0.5rem; }
 
   /* ── MAIN ── */
@@ -228,7 +229,7 @@
   /* ── TOAST ── */
   .toast { position:fixed; top:calc(1rem + var(--sat)); right:1rem; background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:0.75rem 1rem; font-size:0.82rem; z-index:2000; transform:translateX(120%); transition:transform 0.3s ease; max-width:260px; }
   .toast.show { transform:translateX(0); }
-  .toast.success { border-color:#42c9a0; color:#42c9a0; }
+  .toast.success { border-color:#8ab4c9; color:#8ab4c9; }
   .toast.error   { border-color:var(--danger); color:var(--danger); }
 
   /* ── FOOTER ── */
@@ -397,7 +398,7 @@ const CACHE_KEY  = 'khall_gist_cache';
 const FALLBACK = {
   categories: [
     {
-      id:"games", name:"Game / Party Game", emoji:"🎮", color:"#f5a623",
+      id:"games", name:"Game / Party Game", emoji:"🎮", color:"#7b9cbe",
       projects:[
         {id:"p1",  name:"Jigsang",       desc:"Real-time multiplayer jigsaw puzzle game built with Firebase sync.",   url:"https://github.com/Kkboi2000/jigsang",      icon:"🧩"},
         {id:"p2",  name:"Kodeword",      desc:"Word-guessing party game. Codenames-style, mobile-first.",             url:"https://github.com/Kkboi2000/kodeword",     icon:"🔤"},
@@ -407,7 +408,7 @@ const FALLBACK = {
       ]
     },
     {
-      id:"thai", name:"Thai Language / Teaching", emoji:"🇹🇭", color:"#42c9a0",
+      id:"thai", name:"Thai Language / Teaching", emoji:"🇹🇭", color:"#8ab4c9",
       projects:[
         {id:"p6",  name:"Thai Alphabet Drill", desc:"Interactive consonant and vowel trainer for beginners.",          url:"https://github.com/Kkboi2000/thai-alpha-drill", icon:"ก"},
         {id:"p7",  name:"Thai Tone Guide",     desc:"Visual tone rule explainer with audio examples.",                 url:"https://github.com/Kkboi2000/thai-tones",       icon:"🎵"},
@@ -418,7 +419,7 @@ const FALLBACK = {
       ]
     },
     {
-      id:"popups", name:"Easy Funny Pop-ups", emoji:"🎉", color:"#a78bfa",
+      id:"popups", name:"Easy Funny Pop-ups", emoji:"🎉", color:"#9bafc4",
       projects:[
         {id:"p12", name:"Birthday Surprise", desc:"Interactive animated birthday pop-up page.",                        url:"https://github.com/Kkboi2000/birthday-surprise", icon:"🎂"},
         {id:"p13", name:"Congrats Blast",    desc:"Confetti-explosion congratulations micro-site.",                    url:"https://github.com/Kkboi2000/congrats-blast",    icon:"🎊"},

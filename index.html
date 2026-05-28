@@ -192,7 +192,21 @@
   .icon-btn:hover { color:var(--text); border-color:#444; }
   .icon-btn.delete:hover { color:var(--danger); border-color:var(--danger); }
 
-  /* ── EDIT MODE ── */
+  /* ── DRAG & DROP ── */
+  .drag-handle { display:none; cursor:grab; padding:0 4px; color:var(--muted); font-size:1rem; line-height:1; touch-action:none; user-select:none; }
+  .drag-handle:active { cursor:grabbing; }
+  body.edit-mode .drag-handle { display:flex; align-items:center; }
+  .card.dragging { opacity:0.4; border-style:dashed; transform:scale(0.97); }
+  .card.drag-over { border-color:var(--accent); box-shadow:0 0 0 2px var(--accent)40; }
+
+  /* ── QR MODAL ── */
+  #qrModal .modal { border-radius:20px 20px 0 0; text-align:center; }
+  .qr-wrap { display:flex; justify-content:center; margin:1.25rem 0; }
+  .qr-wrap canvas { border-radius:12px; border:3px solid var(--border); background:#fff; padding:10px; }
+  .qr-url { font-size:0.72rem; color:var(--muted); word-break:break-all; margin-bottom:0.5rem; line-height:1.5; }
+  .qr-name { font-family:'Syne',sans-serif; font-weight:700; font-size:1.05rem; margin-bottom:0.25rem; }
+  .icon-btn.qr { color:var(--accent); }
+  .icon-btn.qr:hover { border-color:var(--accent); }
   body.edit-mode .add-btn { display:flex; }
   body.edit-mode .card-actions-edit { display:flex; }
   body.edit-mode .card-link { pointer-events:none; opacity:0.4; }
@@ -244,6 +258,7 @@
     .hero h1 { font-size:2.6rem; }
   }
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 <body>
 
@@ -328,7 +343,7 @@
 </div>
 
 <!-- ADD MODAL -->
-<div class="modal-overlay" id="addModal">
+<div class="modal-overlay" id="addModal" data-noclose="true">
   <div class="modal">
     <div class="modal-handle"></div>
     <h3>Add Project</h3>
@@ -356,7 +371,7 @@
 </div>
 
 <!-- EDIT MODAL -->
-<div class="modal-overlay" id="editCardModal">
+<div class="modal-overlay" id="editCardModal" data-noclose="true">
   <div class="modal">
     <div class="modal-handle"></div>
     <h3>Edit Project</h3>
@@ -379,6 +394,19 @@
     <div class="modal-actions">
       <button class="btn-ghost" onclick="closeModal('editCardModal')">Cancel</button>
       <button class="btn-primary" onclick="confirmEdit()">Save Project</button>
+    </div>
+  </div>
+</div>
+
+<!-- QR MODAL -->
+<div class="modal-overlay" id="qrModal" data-noclose="true">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="qr-name" id="qrName"></div>
+    <div class="qr-url" id="qrUrl"></div>
+    <div class="qr-wrap"><div id="qrDiv"></div></div>
+    <div class="modal-actions">
+      <button class="btn-primary" onclick="closeModal('qrModal')">Close</button>
     </div>
   </div>
 </div>
@@ -535,21 +563,39 @@ function makeCard(p, cat) {
   const card = document.createElement('div');
   card.className = 'card';
   card.style.setProperty('--cat-color', cat.color);
+  card.dataset.id = p.id;
+  card.dataset.catId = cat.id;
+  card.draggable = true;
   card.innerHTML = `
     <div class="card-top">
-      <div class="card-icon">${p.icon || '📁'}</div>
+      <div style="display:flex;align-items:center;gap:0.4rem">
+        <span class="drag-handle" title="Drag to reorder">⠿</span>
+        <div class="card-icon">${p.icon || '📁'}</div>
+      </div>
       <div class="card-actions-edit">
-        <button class="icon-btn" onclick="openEditCard('${p.id}','${cat.id}')">✏</button>
-        <button class="icon-btn delete" onclick="deleteCard('${p.id}','${cat.id}')">✕</button>
+        <button class="icon-btn" title="Edit" onclick="openEditCard('${p.id}','${cat.id}')">✏</button>
+        <button class="icon-btn delete" title="Delete" onclick="deleteCard('${p.id}','${cat.id}')">✕</button>
       </div>
     </div>
     <div class="card-title">${esc(p.name)}</div>
     <div class="card-desc">${esc(p.desc)}</div>
-    <a class="card-link" href="${esc(p.url)}" target="_blank" rel="noopener noreferrer">
-      View Repo
-      <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 10L10 2M4 2h6v6"/></svg>
-    </a>
+    <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap">
+      <a class="card-link" href="${esc(p.url)}" target="_blank" rel="noopener noreferrer">
+        View Repo
+        <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 10L10 2M4 2h6v6"/></svg>
+      </a>
+      <button class="icon-btn qr" title="QR Code" onclick="openQR('${p.id}','${cat.id}')">⊞</button>
+    </div>
   `;
+  // Drag events
+  card.addEventListener('dragstart', onDragStart);
+  card.addEventListener('dragend',   onDragEnd);
+  card.addEventListener('dragover',  onDragOver);
+  card.addEventListener('drop',      onDrop);
+  // Touch drag
+  card.addEventListener('touchstart', onTouchStart, {passive:true});
+  card.addEventListener('touchmove',  onTouchMove,  {passive:false});
+  card.addEventListener('touchend',   onTouchEnd);
   return card;
 }
 
@@ -673,7 +719,9 @@ async function confirmSave() {
 // ─── MODALS ──────────────────────────────────────
 function openModal(id)  { document.getElementById(id).classList.add('open'); }
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+// Only password modal closes on outside click — edit/add/qr require explicit button
 document.querySelectorAll('.modal-overlay').forEach(o => {
+  if (o.dataset.noclose) return; // skip modals marked noclose
   o.addEventListener('click', e => { if(e.target===o) o.classList.remove('open'); });
 });
 
@@ -712,6 +760,115 @@ function checkInstalled() {
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
+}
+
+// ─── QR CODE ─────────────────────────────────────
+function openQR(cardId, catId) {
+  const cat  = state.categories.find(c => c.id === catId);
+  const proj = cat?.projects.find(p => p.id === cardId);
+  if (!proj) return;
+  document.getElementById('qrName').textContent = proj.name;
+  document.getElementById('qrUrl').textContent  = proj.url;
+  // Clear previous QR and regenerate
+  const div = document.getElementById('qrDiv');
+  div.innerHTML = '';
+  new QRCode(div, {
+    text:           proj.url,
+    width:          200,
+    height:         200,
+    colorDark:      '#0d0f12',
+    colorLight:     '#ffffff',
+    correctLevel:   QRCode.CorrectLevel.H
+  });
+  openModal('qrModal');
+}
+
+// ─── DRAG AND DROP ────────────────────────────────
+let dragSrcId = null, dragSrcCatId = null;
+let touchDragEl = null, touchClone = null, touchOffX = 0, touchOffY = 0;
+
+function onDragStart(e) {
+  if (!editMode) { e.preventDefault(); return; }
+  dragSrcId    = e.currentTarget.dataset.id;
+  dragSrcCatId = e.currentTarget.dataset.catId;
+  e.currentTarget.classList.add('dragging');
+  e.dataTransfer.effectAllowed = 'move';
+}
+function onDragEnd(e) {
+  e.currentTarget.classList.remove('dragging');
+  document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+}
+function onDragOver(e) {
+  if (!editMode || !dragSrcId) return;
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'move';
+  document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+  e.currentTarget.classList.add('drag-over');
+}
+function onDrop(e) {
+  if (!editMode || !dragSrcId) return;
+  e.preventDefault();
+  const targetId    = e.currentTarget.dataset.id;
+  const targetCatId = e.currentTarget.dataset.catId;
+  if (dragSrcId === targetId) return;
+  if (dragSrcCatId !== targetCatId) { showToast('Can only reorder within same category.', 'error'); return; }
+  const cat     = state.categories.find(c => c.id === dragSrcCatId);
+  const srcIdx  = cat.projects.findIndex(p => p.id === dragSrcId);
+  const tgtIdx  = cat.projects.findIndex(p => p.id === targetId);
+  const [moved] = cat.projects.splice(srcIdx, 1);
+  cat.projects.splice(tgtIdx, 0, moved);
+  dragSrcId = null;
+  render(); markChanged();
+}
+
+function onTouchStart(e) {
+  if (!editMode) return;
+  if (!e.target.closest('.drag-handle')) return;
+  touchDragEl = e.currentTarget;
+  const touch = e.touches[0];
+  const rect  = touchDragEl.getBoundingClientRect();
+  touchOffX = touch.clientX - rect.left;
+  touchOffY = touch.clientY - rect.top;
+  touchClone = touchDragEl.cloneNode(true);
+  touchClone.style.cssText = `position:fixed;z-index:9000;width:${rect.width}px;opacity:0.85;pointer-events:none;border-radius:12px;transform:scale(1.03);box-shadow:0 16px 40px rgba(0,0,0,0.5);left:${touch.clientX - touchOffX}px;top:${touch.clientY - touchOffY}px`;
+  document.body.appendChild(touchClone);
+  touchDragEl.classList.add('dragging');
+}
+function onTouchMove(e) {
+  if (!touchClone) return;
+  e.preventDefault();
+  const touch = e.touches[0];
+  touchClone.style.left = (touch.clientX - touchOffX) + 'px';
+  touchClone.style.top  = (touch.clientY - touchOffY) + 'px';
+  touchClone.style.display = 'none';
+  const under = document.elementFromPoint(touch.clientX, touch.clientY);
+  touchClone.style.display = '';
+  document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+  const targetCard = under?.closest('.card');
+  if (targetCard && targetCard !== touchDragEl) targetCard.classList.add('drag-over');
+}
+function onTouchEnd(e) {
+  if (!touchClone) return;
+  const touch = e.changedTouches[0];
+  touchClone.style.display = 'none';
+  const under = document.elementFromPoint(touch.clientX, touch.clientY);
+  touchClone.remove(); touchClone = null;
+  touchDragEl.classList.remove('dragging');
+  document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+  const targetCard = under?.closest('.card');
+  if (!targetCard || targetCard === touchDragEl) { touchDragEl = null; return; }
+  const srcId    = touchDragEl.dataset.id;
+  const srcCatId = touchDragEl.dataset.catId;
+  const tgtId    = targetCard.dataset.id;
+  const tgtCatId = targetCard.dataset.catId;
+  touchDragEl = null;
+  if (srcId === tgtId || srcCatId !== tgtCatId) { showToast('Can only reorder within same category.', 'error'); return; }
+  const cat     = state.categories.find(c => c.id === srcCatId);
+  const srcIdx  = cat.projects.findIndex(p => p.id === srcId);
+  const tgtIdx  = cat.projects.findIndex(p => p.id === tgtId);
+  const [moved] = cat.projects.splice(srcIdx, 1);
+  cat.projects.splice(tgtIdx, 0, moved);
+  render(); markChanged();
 }
 
 init();

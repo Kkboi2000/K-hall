@@ -3,7 +3,7 @@
 //  Cache-first for assets, network-first for nav
 // ─────────────────────────────────────────
 
-const CACHE_NAME = 'khall-v1';
+const CACHE_NAME = 'khall-v2';
 const OFFLINE_URL = './index.html';
 
 const PRECACHE = [

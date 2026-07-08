@@ -32,7 +32,6 @@
     --text: #dce6f0;
     --muted: #5a6a7e;
     --danger: #e05252;
-    --line: #06c755;
     --sat: env(safe-area-inset-top, 0px);
     --sab: env(safe-area-inset-bottom, 0px);
     --sal: env(safe-area-inset-left, 0px);
@@ -182,11 +181,11 @@
   .icon-btn { background:var(--surface2); border:1px solid var(--border); color:var(--muted); width:30px; height:30px; border-radius:6px; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:0.82rem; transition:all 0.2s; flex-shrink:0; -webkit-tap-highlight-color:transparent; }
   .icon-btn:hover { color:var(--text); border-color:#444; }
   .icon-btn.delete:hover { color:var(--danger); border-color:var(--danger); }
-  /* share to LINE + copy link */
-  .icon-btn.line { color:var(--line); }
-  .icon-btn.line:hover { color:var(--line); border-color:var(--line); }
+  /* share + copy link */
+  .card-top-right { display:flex; align-items:center; gap:0.35rem; }
+  .icon-btn.share:hover { color:var(--accent-bright); border-color:var(--accent-bright); }
   .icon-btn.copy:hover { color:var(--accent-bright); border-color:var(--accent-bright); }
-  .icon-btn.copied { color:var(--line); border-color:var(--line); }
+  .icon-btn.copied { color:var(--accent-bright); border-color:var(--accent-bright); }
   /* ── DRAG & DROP ── */
   .drag-handle { display:none; cursor:grab; padding:0 4px; color:var(--muted); font-size:1rem; line-height:1; touch-action:none; user-select:none; }
   .drag-handle:active { cursor:grabbing; }
@@ -531,9 +530,12 @@ function makeCard(p, cat) {
         <span class="drag-handle" title="Drag to reorder">⠿</span>
         <div class="card-icon">${p.icon || '📁'}</div>
       </div>
-      <div class="card-actions-edit">
-        <button class="icon-btn" title="Edit" onclick="openEditCard('${p.id}','${cat.id}')">✏</button>
-        <button class="icon-btn delete" title="Delete" onclick="deleteCard('${p.id}','${cat.id}')">✕</button>
+      <div class="card-top-right">
+        <button class="icon-btn share" title="Share" onclick="shareProject('${p.id}','${cat.id}')">➦</button>
+        <div class="card-actions-edit">
+          <button class="icon-btn" title="Edit" onclick="openEditCard('${p.id}','${cat.id}')">✏</button>
+          <button class="icon-btn delete" title="Delete" onclick="deleteCard('${p.id}','${cat.id}')">✕</button>
+        </div>
       </div>
     </div>
     <div class="card-title">${esc(p.name)}</div>
@@ -543,8 +545,7 @@ function makeCard(p, cat) {
         View Repo
         <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 10L10 2M4 2h6v6"/></svg>
       </a>
-      <button class="icon-btn line" title="Share to LINE" onclick="shareLine('${p.id}','${cat.id}')">➦</button>
-      <button class="icon-btn copy" title="Copy repo link" onclick="copyLink('${p.id}','${cat.id}',this)">🗎</button>
+      <button class="icon-btn copy" title="Copy repo link" onclick="copyLink('${p.id}','${cat.id}',this)">⧉</button>
       <button class="icon-btn qr" title="QR Code" onclick="openQR('${p.id}','${cat.id}')">⊞</button>
     </div>
   `;
@@ -634,33 +635,45 @@ function findProject(cardId, catId) {
   const cat = state.categories.find(c => c.id === catId);
   return cat?.projects.find(p => p.id === cardId) || null;
 }
-function shareLine(cardId, catId) {
+async function copyToClipboard(text) {
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.top = '-9999px';
+    ta.setAttribute('readonly', '');
+    document.body.appendChild(ta);
+    ta.select();
+    const ok = document.execCommand('copy');
+    ta.remove();
+    return ok;
+  } catch (e) { return false; }
+}
+// Native share sheet — the user chooses the destination (LINE, WhatsApp, Messages, copy…)
+async function shareProject(cardId, catId) {
   const proj = findProject(cardId, catId);
   if (!proj) return;
-  const text    = `${proj.name} — ${proj.url}`;
-  const lineURL = 'https://line.me/R/msg/text/?' + encodeURIComponent(text);
-  window.open(lineURL, '_blank', 'noopener,noreferrer');
+  const data = { title: proj.name, text: `${proj.name} — ${proj.desc || ''}`.trim(), url: proj.url };
+  if (navigator.share) {
+    try {
+      await navigator.share(data);
+      return;
+    } catch (e) {
+      if (e && e.name === 'AbortError') return; // user dismissed the sheet
+    }
+  }
+  // No Web Share support (mostly desktop) → fall back to copying the link
+  const copied = await copyToClipboard(proj.url);
+  showToast(copied ? 'Sharing unavailable — link copied 📋' : 'Sharing not supported here.', copied ? 'success' : 'error');
 }
 async function copyLink(cardId, catId, btn) {
   const proj = findProject(cardId, catId);
   if (!proj) return;
-  let ok = false;
-  try {
-    if (navigator.clipboard && window.isSecureContext) {
-      await navigator.clipboard.writeText(proj.url);
-      ok = true;
-    } else {
-      const ta = document.createElement('textarea');
-      ta.value = proj.url;
-      ta.style.position = 'fixed';
-      ta.style.top = '-9999px';
-      ta.setAttribute('readonly', '');
-      document.body.appendChild(ta);
-      ta.select();
-      ok = document.execCommand('copy');
-      ta.remove();
-    }
-  } catch (e) { ok = false; }
+  const ok = await copyToClipboard(proj.url);
   if (ok) {
     showToast('Repo link copied 📋', 'success');
     if (btn) {

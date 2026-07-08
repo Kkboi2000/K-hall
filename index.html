@@ -13,7 +13,6 @@
 <meta property="og:description" content="Games, Thai language tools, and funny pop-ups. All built by Krit." />
 <meta property="og:type" content="website" />
 <meta property="og:image" content="icons/icon-512x512.png" />
-
 <title>K-Hall — Krit's Project Hub</title>
 <link rel="manifest" href="manifest.json" />
 <link rel="icon" href="icons/favicon.ico" sizes="any" />
@@ -22,7 +21,6 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,700;1,9..40,300&display=swap" rel="stylesheet" />
-
 <style>
   :root {
     --bg: #0d0f12;
@@ -34,6 +32,7 @@
     --text: #dce6f0;
     --muted: #5a6a7e;
     --danger: #e05252;
+    --line: #06c755;
     --sat: env(safe-area-inset-top, 0px);
     --sab: env(safe-area-inset-bottom, 0px);
     --sal: env(safe-area-inset-left, 0px);
@@ -76,7 +75,6 @@
     pointer-events: none;
     z-index: 0;
   }
-
   /* ── LOADING ── */
   #loadScreen {
     position: fixed; inset: 0; background: var(--bg); z-index: 9999;
@@ -89,7 +87,6 @@
   .load-spinner { width: 28px; height: 28px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
   .load-msg { font-size: 0.78rem; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; }
-
   /* ── SYNC BAR ── */
   #syncBar {
     position: fixed; top: calc(0px + var(--sat)); left: 0; right: 0; z-index: 800;
@@ -104,7 +101,6 @@
   .sync-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
   #syncBar.syncing .sync-dot { animation: pulse 0.8s ease infinite; }
   @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
-
   /* ── INSTALL BANNER ── */
   #installBanner {
     display: none; position: fixed; bottom: calc(1.5rem + var(--sab)); left: 50%; transform: translateX(-50%);
@@ -121,7 +117,6 @@
   .install-btns { display:flex; gap:0.5rem; flex-shrink:0; }
   .btn-install { padding:0.45rem 0.9rem; background:var(--accent); color:#000; border:none; border-radius:8px; font-family:'Syne',sans-serif; font-weight:700; font-size:0.78rem; cursor:pointer; white-space:nowrap; }
   .btn-dismiss { padding:0.45rem 0.6rem; background:none; color:var(--muted); border:1px solid var(--border); border-radius:8px; font-size:0.78rem; cursor:pointer; }
-
   /* ── HEADER ── */
   header {
     position: sticky; top: 0; z-index: 100;
@@ -146,14 +141,12 @@
   }
   .edit-toggle:hover { border-color:var(--accent); color:var(--accent); }
   .edit-toggle.active { background:var(--accent); color:#000; border-color:var(--accent); font-weight:700; }
-
   /* ── HERO ── */
   .hero { position:relative; z-index:5; padding:4rem 2rem 2.5rem; }
   .hero-eyebrow { font-size:0.72rem; letter-spacing:0.2em; text-transform:uppercase; color:var(--muted); margin-bottom:1rem; }
   .hero h1 { font-family:'Syne',sans-serif; font-weight:800; font-size:clamp(1.9rem,6.5vw,3.7rem); line-height:0.95; letter-spacing:-0.04em; margin-bottom:1.25rem; }
   .hero h1 em { font-style:normal; color:var(--accent); }
   .hero-sub { color:var(--muted); font-size:0.95rem; max-width:420px; line-height:1.7; }
-
   /* ── STATS ── */
   .stats { position:relative; z-index:5; display:flex; gap:2rem; padding:1.25rem 2rem; border-top:1px solid var(--border); border-bottom:1px solid var(--border); overflow-x:auto; scrollbar-width:none; }
   .stats::-webkit-scrollbar { display:none; }
@@ -162,7 +155,6 @@
   .stat-label { font-size:0.7rem; letter-spacing:0.12em; text-transform:uppercase; color:var(--muted); }
   .pwa-badge { display:inline-flex; align-items:center; gap:0.35rem; font-size:0.65rem; letter-spacing:0.1em; text-transform:uppercase; color:#8ab4c9; border:1px solid #8ab4c920; background:#8ab4c910; padding:0.2rem 0.6rem; border-radius:999px; }
   .pwa-badge::before { content:'●'; font-size:0.5rem; }
-
   /* ── MAIN ── */
   .main { position:relative; z-index:5; padding:2.5rem 2rem; }
   .category-section { margin-bottom:3.5rem; }
@@ -171,7 +163,6 @@
   .add-btn { margin-left:auto; background:none; border:1px dashed var(--border); color:var(--muted); padding:0.3rem 0.75rem; border-radius:6px; font-family:'DM Sans',sans-serif; font-size:0.75rem; cursor:pointer; transition:all 0.2s; display:none; -webkit-tap-highlight-color:transparent; }
   .add-btn:hover { border-color:var(--accent); color:var(--accent); }
   .cards-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(260px,1fr)); gap:0.9rem; }
-
   /* ── CARD ── */
   .card { background:rgba(21,21,21,0.82); border:1px solid var(--border); border-radius:12px; padding:1.25rem; position:relative; transition:border-color 0.25s, transform 0.25s, background 0.25s; overflow:hidden; animation:fadeSlide 0.4s ease both; -webkit-tap-highlight-color:transparent; }
   @keyframes fadeSlide { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
@@ -191,14 +182,17 @@
   .icon-btn { background:var(--surface2); border:1px solid var(--border); color:var(--muted); width:30px; height:30px; border-radius:6px; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:0.82rem; transition:all 0.2s; flex-shrink:0; -webkit-tap-highlight-color:transparent; }
   .icon-btn:hover { color:var(--text); border-color:#444; }
   .icon-btn.delete:hover { color:var(--danger); border-color:var(--danger); }
-
+  /* share to LINE + copy link */
+  .icon-btn.line { color:var(--line); }
+  .icon-btn.line:hover { color:var(--line); border-color:var(--line); }
+  .icon-btn.copy:hover { color:var(--accent-bright); border-color:var(--accent-bright); }
+  .icon-btn.copied { color:var(--line); border-color:var(--line); }
   /* ── DRAG & DROP ── */
   .drag-handle { display:none; cursor:grab; padding:0 4px; color:var(--muted); font-size:1rem; line-height:1; touch-action:none; user-select:none; }
   .drag-handle:active { cursor:grabbing; }
   body.edit-mode .drag-handle { display:flex; align-items:center; }
   .card.dragging { opacity:0.4; border-style:dashed; transform:scale(0.97); }
   .card.drag-over { border-color:var(--accent); box-shadow:0 0 0 2px var(--accent)40; }
-
   /* ── QR MODAL ── */
   #qrModal .modal { border-radius:20px 20px 0 0; text-align:center; }
   .qr-wrap { display:flex; justify-content:center; margin:1.25rem 0; }
@@ -211,7 +205,6 @@
   body.edit-mode .card-actions-edit { display:flex; }
   body.edit-mode .card-link { pointer-events:none; opacity:0.4; }
   body.edit-mode .card { border-style:dashed; }
-
   /* ── MODAL ── */
   .modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.82); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px); z-index:1000; align-items:flex-end; justify-content:center; padding-bottom:var(--sab); }
   .modal-overlay.open { display:flex; }
@@ -233,22 +226,18 @@
   .btn-ghost:hover { color:var(--text); border-color:#444; }
   .error-msg { color:var(--danger); font-size:0.78rem; margin-top:0.35rem; display:none; }
   .error-msg.show { display:block; }
-
   /* ── SAVE BAR ── */
   .save-bar { position:fixed; bottom:calc(1.5rem + var(--sab)); left:50%; transform:translateX(-50%) translateY(120px); background:var(--surface); border:1px solid var(--border); border-radius:999px; padding:0.65rem 0.9rem 0.65rem 1.2rem; display:flex; align-items:center; gap:0.75rem; z-index:500; transition:transform 0.35s cubic-bezier(0.34,1.4,0.64,1); white-space:nowrap; box-shadow:0 8px 32px rgba(0,0,0,0.6); }
   .save-bar.visible { transform:translateX(-50%) translateY(0); }
   .save-bar span { font-size:0.8rem; color:var(--muted); }
   .save-bar .btn-save { padding:0.4rem 1rem; background:var(--accent); color:#000; border:none; border-radius:999px; font-family:'Syne',sans-serif; font-weight:700; font-size:0.75rem; cursor:pointer; -webkit-tap-highlight-color:transparent; }
-
   /* ── TOAST ── */
   .toast { position:fixed; top:calc(1rem + var(--sat)); right:1rem; background:var(--surface2); border:1px solid var(--border); border-radius:10px; padding:0.75rem 1rem; font-size:0.82rem; z-index:2000; transform:translateX(120%); transition:transform 0.3s ease; max-width:260px; }
   .toast.show { transform:translateX(0); }
   .toast.success { border-color:#8ab4c9; color:#8ab4c9; }
   .toast.error   { border-color:var(--danger); color:var(--danger); }
-
   /* ── FOOTER ── */
   footer { position:relative; z-index:5; border-top:1px solid var(--border); padding:1.5rem 2rem; display:flex; justify-content:space-between; align-items:center; color:var(--muted); font-size:0.75rem; flex-wrap:wrap; gap:0.5rem; }
-
   @media(max-width:480px) {
     header { padding:1rem 1.25rem; }
     .hero  { padding:2.5rem 1.25rem 1.5rem; }
@@ -261,15 +250,12 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 <body>
-
 <div id="loadScreen">
   <div class="load-logo">K<span>-</span>Hall</div>
   <div class="load-spinner"></div>
   <div class="load-msg" id="loadMsg">Fetching projects...</div>
 </div>
-
 <div id="syncBar"><div class="sync-dot"></div><span id="syncMsg"></span></div>
-
 <div id="installBanner">
   <img src="icons/icon-192x192.png" alt="K-Hall" />
   <div class="install-text">
@@ -281,9 +267,7 @@
     <button class="btn-dismiss" onclick="dismissInstall()">✕</button>
   </div>
 </div>
-
 <div class="toast" id="toast"></div>
-
 <header>
   <div class="logo-wrap">
     <img src="icons/icon-192x192.png" class="logo-img" alt="K" />
@@ -294,13 +278,11 @@
     <button class="edit-toggle" id="editToggle" onclick="handleEditToggle()">☰ Edit</button>
   </div>
 </header>
-
 <section class="hero">
   <p class="hero-eyebrow">Kkboi</p>
   <h1>Built by<br/><em>Krit.</em></h1>
   <p class="hero-sub">Quick project gallery — games, language tools, and small experiments. Pick a room and explore.</p>
 </section>
-
 <div class="stats">
   <div class="stat">
     <span class="stat-num" id="totalCount">—</span>
@@ -315,14 +297,11 @@
     <span class="stat-label">App Status</span>
   </div>
 </div>
-
 <main class="main" id="mainContent"></main>
-
 <div class="save-bar" id="saveBar">
   <span>Unsaved changes</span>
   <button class="btn-save" onclick="openSaveModal()">Save Changes</button>
 </div>
-
 <!-- PASSWORD MODAL -->
 <div class="modal-overlay" id="pwModal">
   <div class="modal">
@@ -341,7 +320,6 @@
     </div>
   </div>
 </div>
-
 <!-- ADD MODAL -->
 <div class="modal-overlay" id="addModal" data-noclose="true">
   <div class="modal">
@@ -369,7 +347,6 @@
     </div>
   </div>
 </div>
-
 <!-- EDIT MODAL -->
 <div class="modal-overlay" id="editCardModal" data-noclose="true">
   <div class="modal">
@@ -397,7 +374,6 @@
     </div>
   </div>
 </div>
-
 <!-- QR MODAL -->
 <div class="modal-overlay" id="qrModal" data-noclose="true">
   <div class="modal">
@@ -410,18 +386,15 @@
     </div>
   </div>
 </div>
-
 <footer>
   <span>K-Hall · Krit's Project Hub</span>
   <span id="footerCount"></span>
 </footer>
-
 <script>
 // ─── CONFIG — no secrets here ────────────────────
 const WORKER_URL = 'https://falling-sun-c1c2.krit-komol.workers.dev';
 const PASSWORD   = 'krit';
 const CACHE_KEY  = 'khall_gist_cache';
-
 // ─── FALLBACK DATA ───────────────────────────────
 const FALLBACK = {
   categories: [
@@ -456,12 +429,10 @@ const FALLBACK = {
     }
   ]
 };
-
 // ─── STATE ───────────────────────────────────────
 let state = null;
 let editMode = false, hasChanges = false;
 let currentCatId = null, editingCardId = null, editingCatId = null;
-
 // ─── WORKER API ──────────────────────────────────
 async function fetchFromWorker() {
   const res = await fetch(WORKER_URL);
@@ -470,7 +441,6 @@ async function fetchFromWorker() {
   if (!data.categories || data.categories.length === 0) return FALLBACK;
   return data;
 }
-
 async function saveToWorker(data) {
   const res = await fetch(WORKER_URL, {
     method: 'PATCH',
@@ -480,11 +450,9 @@ async function saveToWorker(data) {
   if (!res.ok) throw new Error(`Worker PATCH failed: ${res.status}`);
   return res.json();
 }
-
 // ─── CACHE ───────────────────────────────────────
 function cacheState(data) { try { localStorage.setItem(CACHE_KEY, JSON.stringify(data)); } catch(e) {} }
 function getCached()      { try { const r = localStorage.getItem(CACHE_KEY); return r ? JSON.parse(r) : null; } catch(e) { return null; } }
-
 // ─── SYNC UI ─────────────────────────────────────
 function setSyncStatus(s) { document.getElementById('syncDot').className = 'sync-indicator ' + s; }
 function showSyncBar(type, msg, autohide = true) {
@@ -493,15 +461,12 @@ function showSyncBar(type, msg, autohide = true) {
   bar.className = `show ${type}`;
   if (autohide) setTimeout(() => bar.classList.remove('show'), 3000);
 }
-
 // ─── INIT ─────────────────────────────────────────
 async function init() {
   const loadMsg = document.getElementById('loadMsg');
-
   // Instant render from cache
   const cached = getCached();
   if (cached) { state = cached; render(); setSyncStatus('saving'); }
-
   // Fresh fetch from Worker → Gist
   try {
     loadMsg.textContent = 'Syncing from cloud...';
@@ -517,19 +482,16 @@ async function init() {
     setSyncStatus('error');
     showSyncBar('err', 'Offline — showing cached data');
   }
-
   const ls = document.getElementById('loadScreen');
   ls.classList.add('fade');
   setTimeout(() => ls.style.display = 'none', 450);
   checkInstalled();
 }
-
 // ─── RENDER ──────────────────────────────────────
 function render() {
   const main = document.getElementById('mainContent');
   main.innerHTML = '';
   let total = 0;
-
   state.categories.forEach(cat => {
     total += cat.projects.length;
     const section = document.createElement('section');
@@ -546,11 +508,9 @@ function render() {
     const grid = section.querySelector(`#grid-${cat.id}`);
     cat.projects.forEach(p => grid.appendChild(makeCard(p, cat)));
   });
-
   document.getElementById('totalCount').textContent = total;
   document.getElementById('catCount').textContent = state.categories.length;
   document.getElementById('footerCount').textContent = `${total} projects · ${state.categories.length} categories`;
-
   if (location.hash) {
     setTimeout(() => {
       const el = document.getElementById(location.hash.slice(1));
@@ -558,7 +518,6 @@ function render() {
     }, 300);
   }
 }
-
 function makeCard(p, cat) {
   const card = document.createElement('div');
   card.className = 'card';
@@ -584,6 +543,8 @@ function makeCard(p, cat) {
         View Repo
         <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M2 10L10 2M4 2h6v6"/></svg>
       </a>
+      <button class="icon-btn line" title="Share to LINE" onclick="shareLine('${p.id}','${cat.id}')">➦</button>
+      <button class="icon-btn copy" title="Copy repo link" onclick="copyLink('${p.id}','${cat.id}',this)">🗎</button>
       <button class="icon-btn qr" title="QR Code" onclick="openQR('${p.id}','${cat.id}')">⊞</button>
     </div>
   `;
@@ -598,11 +559,9 @@ function makeCard(p, cat) {
   card.addEventListener('touchend',   onTouchEnd);
   return card;
 }
-
 function esc(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
-
 // ─── EDIT MODE ───────────────────────────────────
 function handleEditToggle() {
   editMode = !editMode;
@@ -616,7 +575,6 @@ function markChanged() {
   hasChanges = true;
   document.getElementById('saveBar').classList.add('visible');
 }
-
 // ─── ADD ─────────────────────────────────────────
 function openAddModal(catId) {
   currentCatId = catId;
@@ -636,7 +594,6 @@ function confirmAdd() {
   markChanged();
   showToast('Project added!', 'success');
 }
-
 // ─── EDIT CARD ───────────────────────────────────
 function openEditCard(cardId, catId) {
   const cat  = state.categories.find(c => c.id === catId);
@@ -662,7 +619,6 @@ function confirmEdit() {
   markChanged();
   showToast('Updated!', 'success');
 }
-
 // ─── DELETE ──────────────────────────────────────
 function deleteCard(cardId, catId) {
   if (!confirm('Remove this project?')) return;
@@ -673,7 +629,50 @@ function deleteCard(cardId, catId) {
   markChanged();
   showToast('Removed.', 'success');
 }
-
+// ─── SHARE / COPY ────────────────────────────────
+function findProject(cardId, catId) {
+  const cat = state.categories.find(c => c.id === catId);
+  return cat?.projects.find(p => p.id === cardId) || null;
+}
+function shareLine(cardId, catId) {
+  const proj = findProject(cardId, catId);
+  if (!proj) return;
+  const text    = `${proj.name} — ${proj.url}`;
+  const lineURL = 'https://line.me/R/msg/text/?' + encodeURIComponent(text);
+  window.open(lineURL, '_blank', 'noopener,noreferrer');
+}
+async function copyLink(cardId, catId, btn) {
+  const proj = findProject(cardId, catId);
+  if (!proj) return;
+  let ok = false;
+  try {
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(proj.url);
+      ok = true;
+    } else {
+      const ta = document.createElement('textarea');
+      ta.value = proj.url;
+      ta.style.position = 'fixed';
+      ta.style.top = '-9999px';
+      ta.setAttribute('readonly', '');
+      document.body.appendChild(ta);
+      ta.select();
+      ok = document.execCommand('copy');
+      ta.remove();
+    }
+  } catch (e) { ok = false; }
+  if (ok) {
+    showToast('Repo link copied 📋', 'success');
+    if (btn) {
+      const original = btn.textContent;
+      btn.textContent = '✓';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.textContent = original; btn.classList.remove('copied'); }, 1400);
+    }
+  } else {
+    showToast('Copy failed — long-press the link to copy.', 'error');
+  }
+}
 // ─── SAVE / SYNC ─────────────────────────────────
 function openSaveModal() {
   document.getElementById('pwInput').value = '';
@@ -681,7 +680,6 @@ function openSaveModal() {
   openModal('pwModal');
   setTimeout(() => document.getElementById('pwInput').focus(), 350);
 }
-
 async function confirmSave() {
   const pw = document.getElementById('pwInput').value;
   if (pw !== PASSWORD) {
@@ -695,7 +693,6 @@ async function confirmSave() {
   btn.disabled = true;
   setSyncStatus('saving');
   showSyncBar('syncing', 'Saving to cloud...', false);
-
   try {
     await saveToWorker(state);
     cacheState(state);
@@ -715,7 +712,6 @@ async function confirmSave() {
     btn.disabled = false;
   }
 }
-
 // ─── MODALS ──────────────────────────────────────
 function openModal(id)  { document.getElementById(id).classList.add('open'); }
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
@@ -724,7 +720,6 @@ document.querySelectorAll('.modal-overlay').forEach(o => {
   if (o.dataset.noclose) return; // skip modals marked noclose
   o.addEventListener('click', e => { if(e.target===o) o.classList.remove('open'); });
 });
-
 // ─── TOAST ───────────────────────────────────────
 let toastTimer;
 function showToast(msg, type='success') {
@@ -733,7 +728,6 @@ function showToast(msg, type='success') {
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => t.classList.remove('show'), 3000);
 }
-
 // ─── PWA ─────────────────────────────────────────
 let deferredPrompt = null;
 window.addEventListener('beforeinstallprompt', e => {
@@ -757,11 +751,9 @@ function checkInstalled() {
   const on = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
   if (on) { document.getElementById('pwaStatWrap').style.display = ''; document.getElementById('installBanner').classList.remove('show'); }
 }
-
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
 }
-
 // ─── QR CODE ─────────────────────────────────────
 function openQR(cardId, catId) {
   const cat  = state.categories.find(c => c.id === catId);
@@ -782,11 +774,9 @@ function openQR(cardId, catId) {
   });
   openModal('qrModal');
 }
-
 // ─── DRAG AND DROP ────────────────────────────────
 let dragSrcId = null, dragSrcCatId = null;
 let touchDragEl = null, touchClone = null, touchOffX = 0, touchOffY = 0;
-
 function onDragStart(e) {
   if (!editMode) { e.preventDefault(); return; }
   dragSrcId    = e.currentTarget.dataset.id;
@@ -820,7 +810,6 @@ function onDrop(e) {
   dragSrcId = null;
   render(); markChanged();
 }
-
 function onTouchStart(e) {
   if (!editMode) return;
   if (!e.target.closest('.drag-handle')) return;
@@ -870,7 +859,6 @@ function onTouchEnd(e) {
   cat.projects.splice(tgtIdx, 0, moved);
   render(); markChanged();
 }
-
 init();
 </script>
 </body>

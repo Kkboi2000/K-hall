@@ -156,7 +156,7 @@
   .pwa-badge::before { content:'●'; font-size:0.5rem; }
   /* ── MAIN ── */
   .main { position:relative; z-index:5; padding:2.5rem 2rem; }
-  .category-section { margin-bottom:3.5rem; }
+  .category-section { margin-bottom:3.5rem; scroll-margin-top:calc(5.5rem + var(--sat)); }
   .category-header { display:flex; align-items:center; gap:0.75rem; margin-bottom:1.25rem; flex-wrap:wrap; }
   .category-tag { font-size:0.68rem; font-weight:700; letter-spacing:0.15em; text-transform:uppercase; padding:0.25rem 0.75rem; border-radius:999px; border:1px solid currentColor; white-space:nowrap; }
   .add-btn { background:none; border:1px dashed var(--border); color:var(--muted); padding:0.3rem 0.75rem; border-radius:6px; font-family:'DM Sans',sans-serif; font-size:0.75rem; cursor:pointer; transition:all 0.2s; display:none; -webkit-tap-highlight-color:transparent; }
@@ -164,6 +164,11 @@
   /* ── SECTION EDITING ── */
   .section-actions { margin-left:auto; display:none; align-items:center; gap:0.35rem; }
   body.edit-mode .section-actions { display:flex; }
+  .section-actions .icon-btn:disabled { opacity:0.3; cursor:default; pointer-events:none; }
+  /* After a move, the tag pulses once so you can see where the section landed */
+  .category-section.just-moved .category-tag { animation:tagPulse 0.9s ease-out; }
+  @keyframes tagPulse { from{box-shadow:0 0 0 0 currentColor} to{box-shadow:0 0 0 10px transparent} }
+  @media (prefers-reduced-motion: reduce) { .category-section.just-moved .category-tag { animation:none; } }
   .add-section-btn { display:none; width:100%; align-items:center; justify-content:center; gap:0.5rem; padding:1.1rem; background:none; border:1px dashed var(--border); border-radius:12px; color:var(--muted); font-family:'Syne',sans-serif; font-weight:700; font-size:0.85rem; cursor:pointer; transition:all 0.2s; -webkit-tap-highlight-color:transparent; }
   .add-section-btn:hover { border-color:var(--accent); color:var(--accent); background:rgba(123,156,190,0.05); }
   body.edit-mode .add-section-btn { display:flex; }
@@ -546,7 +551,8 @@ function render() {
   const main = document.getElementById('mainContent');
   main.innerHTML = '';
   let total = 0;
-  state.categories.forEach(cat => {
+  const last = state.categories.length - 1;
+  state.categories.forEach((cat, i) => {
     total += cat.projects.length;
     const section = document.createElement('section');
     section.className = 'category-section';
@@ -556,6 +562,8 @@ function render() {
         <span class="category-tag" style="${tagStyle(cat.color)}">${esc(cat.emoji || '📂')} ${esc(cat.name)}</span>
         <div class="section-actions">
           <button class="add-btn" onclick="openAddModal('${cat.id}')">+ Add project</button>
+          <button class="icon-btn" title="Move section up" aria-label="Move section up" onclick="moveSection('${cat.id}',-1)" ${i === 0 ? 'disabled' : ''}>↑</button>
+          <button class="icon-btn" title="Move section down" aria-label="Move section down" onclick="moveSection('${cat.id}',1)" ${i === last ? 'disabled' : ''}>↓</button>
           <button class="icon-btn" title="Edit section" onclick="openSectionModal('${cat.id}')">✏</button>
           <button class="icon-btn delete" title="Delete section" onclick="deleteSection('${cat.id}')">✕</button>
         </div>
@@ -765,6 +773,18 @@ function confirmDeleteSection() {
   closeModal('deleteSectionModal');
   if (deletingSectionId) removeSection(deletingSectionId);
   deletingSectionId = null;
+}
+// Swap a section with its neighbour (dir −1 = up, +1 = down), then follow it on screen
+function moveSection(catId, dir) {
+  const list = state.categories;
+  const i = list.findIndex(c => c.id === catId), j = i + dir;
+  if (i < 0 || j < 0 || j >= list.length) return;
+  [list[i], list[j]] = [list[j], list[i]];
+  render();
+  markChanged();
+  const el = document.getElementById(catId);
+  el.classList.add('just-moved');
+  el.scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 function removeSection(catId) {
   state.categories = state.categories.filter(c => c.id !== catId);

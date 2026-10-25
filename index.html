@@ -159,8 +159,24 @@
   .category-section { margin-bottom:3.5rem; }
   .category-header { display:flex; align-items:center; gap:0.75rem; margin-bottom:1.25rem; flex-wrap:wrap; }
   .category-tag { font-size:0.68rem; font-weight:700; letter-spacing:0.15em; text-transform:uppercase; padding:0.25rem 0.75rem; border-radius:999px; border:1px solid currentColor; white-space:nowrap; }
-  .add-btn { margin-left:auto; background:none; border:1px dashed var(--border); color:var(--muted); padding:0.3rem 0.75rem; border-radius:6px; font-family:'DM Sans',sans-serif; font-size:0.75rem; cursor:pointer; transition:all 0.2s; display:none; -webkit-tap-highlight-color:transparent; }
+  .add-btn { background:none; border:1px dashed var(--border); color:var(--muted); padding:0.3rem 0.75rem; border-radius:6px; font-family:'DM Sans',sans-serif; font-size:0.75rem; cursor:pointer; transition:all 0.2s; display:none; -webkit-tap-highlight-color:transparent; }
   .add-btn:hover { border-color:var(--accent); color:var(--accent); }
+  /* ── SECTION EDITING ── */
+  .section-actions { margin-left:auto; display:none; align-items:center; gap:0.35rem; }
+  body.edit-mode .section-actions { display:flex; }
+  .add-section-btn { display:none; width:100%; align-items:center; justify-content:center; gap:0.5rem; padding:1.1rem; background:none; border:1px dashed var(--border); border-radius:12px; color:var(--muted); font-family:'Syne',sans-serif; font-weight:700; font-size:0.85rem; cursor:pointer; transition:all 0.2s; -webkit-tap-highlight-color:transparent; }
+  .add-section-btn:hover { border-color:var(--accent); color:var(--accent); background:rgba(123,156,190,0.05); }
+  body.edit-mode .add-section-btn { display:flex; }
+  .empty-state { text-align:center; color:var(--muted); font-size:0.85rem; padding:3rem 1rem; }
+  body.edit-mode .empty-state { display:none; }
+  .section-preview { margin-bottom:1.1rem; }
+  .swatches { display:flex; flex-wrap:wrap; gap:0.55rem; }
+  .swatch { width:30px; height:30px; border-radius:50%; border:2px solid transparent; cursor:pointer; transition:transform 0.15s; -webkit-tap-highlight-color:transparent; }
+  .swatch:hover { transform:scale(1.1); }
+  .swatch.selected { border-color:var(--text); box-shadow:inset 0 0 0 3px var(--surface); }
+  .warn-list { background:var(--bg); border:1px solid var(--border); border-radius:10px; padding:0.75rem 0.9rem; font-size:0.82rem; line-height:1.8; white-space:pre-line; max-height:170px; overflow-y:auto; }
+  .btn-danger { flex:1; padding:0.75rem 1rem; background:var(--danger); color:#fff; border:none; border-radius:10px; font-family:'Syne',sans-serif; font-weight:700; font-size:0.88rem; cursor:pointer; transition:opacity 0.2s; -webkit-tap-highlight-color:transparent; }
+  .btn-danger:hover { opacity:0.85; }
   .cards-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(260px,1fr)); gap:0.9rem; }
   /* ── CARD ── */
   .card { background:rgba(21,21,21,0.82); border:1px solid var(--border); border-radius:12px; padding:1.25rem; position:relative; transition:border-color 0.25s, transform 0.25s, background 0.25s; overflow:hidden; animation:fadeSlide 0.4s ease both; -webkit-tap-highlight-color:transparent; }
@@ -373,6 +389,44 @@
     </div>
   </div>
 </div>
+<!-- SECTION MODAL (shared by add + edit) -->
+<div class="modal-overlay" id="sectionModal" data-noclose="true">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <h3 id="sectionModalTitle">Add Section</h3>
+    <div class="section-preview"><span class="category-tag" id="sectionPreview"></span></div>
+    <div class="form-group">
+      <label>Section Name</label>
+      <input type="text" id="sectionName" placeholder="e.g. Tools / Utilities" autocomplete="off"
+             oninput="updateSectionPreview()" onkeydown="if(event.key==='Enter')confirmSection()" />
+    </div>
+    <div class="form-group">
+      <label>Icon (emoji)</label>
+      <input type="text" id="sectionEmoji" placeholder="📂" maxlength="4" autocomplete="off" oninput="updateSectionPreview()" />
+    </div>
+    <div class="form-group">
+      <label>Color</label>
+      <div class="swatches" id="sectionSwatches"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-ghost" onclick="closeModal('sectionModal')">Cancel</button>
+      <button class="btn-primary" id="sectionSaveBtn" onclick="confirmSection()">Add Section</button>
+    </div>
+  </div>
+</div>
+<!-- DELETE SECTION WARNING (only shown when the section still has projects) -->
+<div class="modal-overlay" id="deleteSectionModal" data-noclose="true">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <h3 id="delSectionTitle"></h3>
+    <p class="modal-sub" id="delSectionMsg"></p>
+    <div class="warn-list" id="delSectionList"></div>
+    <div class="modal-actions">
+      <button class="btn-ghost" onclick="closeModal('deleteSectionModal')">Cancel</button>
+      <button class="btn-danger" onclick="confirmDeleteSection()">Delete section</button>
+    </div>
+  </div>
+</div>
 <!-- QR MODAL -->
 <div class="modal-overlay" id="qrModal" data-noclose="true">
   <div class="modal">
@@ -437,7 +491,8 @@ async function fetchFromWorker() {
   const res = await fetch(WORKER_URL);
   if (!res.ok) throw new Error(`Worker GET failed: ${res.status}`);
   const data = await res.json();
-  if (!data.categories || data.categories.length === 0) return FALLBACK;
+  // An empty list is valid now (every section deleted) — only fall back when the data is missing
+  if (!Array.isArray(data.categories)) return FALLBACK;
   return data;
 }
 async function saveToWorker(data) {
@@ -498,8 +553,12 @@ function render() {
     section.id = cat.id;
     section.innerHTML = `
       <div class="category-header">
-        <span class="category-tag" style="color:${cat.color};border-color:${cat.color}30;background:${cat.color}0d">${cat.emoji} ${cat.name}</span>
-        <button class="add-btn" onclick="openAddModal('${cat.id}')">+ Add project</button>
+        <span class="category-tag" style="${tagStyle(cat.color)}">${esc(cat.emoji || '📂')} ${esc(cat.name)}</span>
+        <div class="section-actions">
+          <button class="add-btn" onclick="openAddModal('${cat.id}')">+ Add project</button>
+          <button class="icon-btn" title="Edit section" onclick="openSectionModal('${cat.id}')">✏</button>
+          <button class="icon-btn delete" title="Delete section" onclick="deleteSection('${cat.id}')">✕</button>
+        </div>
       </div>
       <div class="cards-grid" id="grid-${cat.id}"></div>
     `;
@@ -507,6 +566,10 @@ function render() {
     const grid = section.querySelector(`#grid-${cat.id}`);
     cat.projects.forEach(p => grid.appendChild(makeCard(p, cat)));
   });
+  if (!state.categories.length) {
+    main.insertAdjacentHTML('beforeend', '<p class="empty-state">No sections yet. Tap ☰ Edit to add one.</p>');
+  }
+  main.insertAdjacentHTML('beforeend', '<button class="add-section-btn" onclick="openSectionModal()">+ Add section</button>');
   document.getElementById('totalCount').textContent = total;
   document.getElementById('catCount').textContent = state.categories.length;
   document.getElementById('footerCount').textContent = `${total} projects · ${state.categories.length} categories`;
@@ -563,6 +626,8 @@ function makeCard(p, cat) {
 function esc(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
+// Section tag colours: text, faint border, fainter fill — all from one hex
+function tagStyle(c) { return `color:${c};border-color:${c}30;background:${c}0d`; }
 // ─── EDIT MODE ───────────────────────────────────
 function handleEditToggle() {
   editMode = !editMode;
@@ -629,6 +694,83 @@ function deleteCard(cardId, catId) {
   render();
   markChanged();
   showToast('Removed.', 'success');
+}
+// ─── SECTIONS ────────────────────────────────────
+const SECTION_COLORS = ['#7b9cbe','#8ab4c9','#9bafc4','#9bc4a3','#c4b27b','#c4917b','#c47b9a','#a99bc4'];
+let editingSectionId = null, deletingSectionId = null, sectionColor = SECTION_COLORS[0];
+// One modal does both jobs: no id → add, id → edit
+function openSectionModal(catId = null) {
+  const cat = catId ? state.categories.find(c => c.id === catId) : null;
+  editingSectionId = cat ? cat.id : null;
+  document.getElementById('sectionModalTitle').textContent = cat ? 'Edit Section' : 'Add Section';
+  document.getElementById('sectionSaveBtn').textContent    = cat ? 'Save Section' : 'Add Section';
+  document.getElementById('sectionName').value  = cat ? cat.name : '';
+  document.getElementById('sectionEmoji').value = cat ? (cat.emoji || '') : '';
+  // A new section starts on the first colour no other section is using
+  sectionColor = cat ? cat.color
+    : (SECTION_COLORS.find(c => !state.categories.some(x => x.color === c)) || SECTION_COLORS[0]);
+  renderSwatches();
+  updateSectionPreview();
+  openModal('sectionModal');
+  setTimeout(() => document.getElementById('sectionName').focus(), 350);
+}
+function renderSwatches() {
+  document.getElementById('sectionSwatches').innerHTML = SECTION_COLORS.map(c =>
+    `<button type="button" class="swatch${c === sectionColor ? ' selected' : ''}" style="background:${c}" aria-label="Color ${c}" onclick="pickSectionColor('${c}')"></button>`
+  ).join('');
+}
+function pickSectionColor(c) { sectionColor = c; renderSwatches(); updateSectionPreview(); }
+function updateSectionPreview() {
+  const name  = document.getElementById('sectionName').value.trim()  || 'New Section';
+  const emoji = document.getElementById('sectionEmoji').value.trim() || '📂';
+  const tag = document.getElementById('sectionPreview');
+  tag.textContent   = `${emoji} ${name}`;
+  tag.style.cssText = tagStyle(sectionColor);
+}
+function confirmSection() {
+  const name  = document.getElementById('sectionName').value.trim();
+  const emoji = document.getElementById('sectionEmoji').value.trim() || '📂';
+  if (!name) { showToast('Section name is required.', 'error'); return; }
+  const isEdit = !!editingSectionId;
+  let id = editingSectionId;
+  if (isEdit) {
+    const cat = state.categories.find(c => c.id === id);
+    if (!cat) return;
+    Object.assign(cat, { name, emoji, color: sectionColor });
+  } else {
+    id = 's' + Date.now().toString(36);
+    state.categories.push({ id, name, emoji, color: sectionColor, projects: [] });
+  }
+  closeModal('sectionModal');
+  render();
+  markChanged();
+  showToast(isEdit ? 'Section updated!' : 'Section added!', 'success');
+  if (!isEdit) document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+// Empty section → removed straight away. Section with projects → warning first.
+function deleteSection(catId) {
+  const cat = state.categories.find(c => c.id === catId);
+  if (!cat) return;
+  if (!cat.projects.length) { removeSection(catId); return; }
+  deletingSectionId = catId;
+  const n = cat.projects.length;
+  document.getElementById('delSectionTitle').textContent = `⚠️ Delete “${cat.name}”?`;
+  document.getElementById('delSectionMsg').textContent =
+    `This section still has ${n} project${n > 1 ? 's' : ''}. Deleting it removes ${n > 1 ? 'them' : 'it'} too.`;
+  document.getElementById('delSectionList').textContent =
+    cat.projects.map(p => `${p.icon || '📁'} ${p.name}`).join('\n');
+  openModal('deleteSectionModal');
+}
+function confirmDeleteSection() {
+  closeModal('deleteSectionModal');
+  if (deletingSectionId) removeSection(deletingSectionId);
+  deletingSectionId = null;
+}
+function removeSection(catId) {
+  state.categories = state.categories.filter(c => c.id !== catId);
+  render();
+  markChanged();
+  showToast('Section deleted.', 'success');
 }
 // ─── SHARE / COPY ────────────────────────────────
 function findProject(cardId, catId) {
